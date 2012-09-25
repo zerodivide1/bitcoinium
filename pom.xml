@@ -85,7 +85,6 @@
 	</dependencies>
 
 	<build>
-		<sourceDirectory>src</sourceDirectory>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -98,12 +97,6 @@
 			<plugin>
 				<groupId>com.jayway.maven.plugins.android.generation2</groupId>
 				<artifactId>android-maven-plugin</artifactId>
-				<configuration>
-					<sdk>
-						<path>${env.ANDROID_HOME}</path>
-						<platform>1.6</platform>
-					</sdk>
-				</configuration>
 				<extensions>true</extensions>
 			</plugin>
 		</plugins>
