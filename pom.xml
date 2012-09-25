@@ -1,0 +1,113 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<name>Bitcoinium</name>
+	<groupId>com.veken0m</groupId>
+	<artifactId>bitcoinium</artifactId>
+	<version>1.3.0-SNAPSHOT</version>
+	<packaging>apk</packaging>
+	<description>Bitcoinium is an Android application used to monitor Bitcoin price on various exchanges.</description>
+	<url>TODO</url>
+	<inceptionYear>2012</inceptionYear>
+
+	<developers>
+		<developer>
+			<name>Michael Lagacé</name>
+		</developer>
+		<developer>
+			<name>Tim Molter</name>
+		</developer>
+	</developers>
+
+	<licenses>
+		<license>
+			<name>Apache 2</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0</url>
+			<distribution>repo</distribution>
+			<comments>A business-friendly OSS license</comments>
+		</license>
+	</licenses>
+	<issueManagement>
+		<system>GitHub</system>
+		<url>https://github.com/veken0m/bitcoinium/issues</url>
+	</issueManagement>
+	<scm>
+		<url>https://github.com/veken0m/bitcoinium.git</url>
+	</scm>
+
+	<repositories>
+		<repository>
+			<id>xeiam-release</id>
+			<releases />
+			<url>http://nexus.xeiam.com/content/repositories/releases/</url>
+		</repository>
+		<repository>
+			<id>xeiam-snapshot</id>
+			<snapshots />
+			<url>http://nexus.xeiam.com/content/repositories/snapshots/</url>
+		</repository>
+	</repositories>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.google.android</groupId>
+			<artifactId>android</artifactId>
+			<version>4.1.1.4</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.xeiam.xchange</groupId>
+			<artifactId>xchange</artifactId>
+			<version>1.2.0-SNAPSHOT</version>
+		</dependency>
+		<!-- test -->
+		<dependency>
+			<groupId>org.hamcrest</groupId>
+			<artifactId>hamcrest-library</artifactId>
+			<version>1.3</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<!-- dep leaves out hamcrest classes -->
+			<artifactId>junit-dep</artifactId>
+			<version>4.10</version>
+			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.hamcrest</groupId>
+					<artifactId>hamcrest-core</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<sourceDirectory>src</sourceDirectory>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>com.jayway.maven.plugins.android.generation2</groupId>
+				<artifactId>android-maven-plugin</artifactId>
+				<configuration>
+					<sdk>
+						<path>${env.ANDROID_HOME}</path>
+						<platform>1.6</platform>
+					</sdk>
+				</configuration>
+				<extensions>true</extensions>
+			</plugin>
+		</plugins>
+	</build>
+
+
+</project>
