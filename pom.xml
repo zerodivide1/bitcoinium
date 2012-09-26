@@ -3,11 +3,11 @@
 
 	<modelVersion>4.0.0</modelVersion>
 
-	<name>Bitcoinium</name>
+	<name>bitcoinium-parent</name>
 	<groupId>com.veken0m</groupId>
-	<artifactId>bitcoinium</artifactId>
+	<artifactId>bitcoinium-parent</artifactId>
 	<version>1.3.0-SNAPSHOT</version>
-	<packaging>apk</packaging>
+	<packaging>pom</packaging>
 	<description>Bitcoinium is an Android application used to monitor Bitcoin price on various exchanges.</description>
 	<url>TODO</url>
 	<inceptionYear>2012</inceptionYear>
@@ -50,67 +50,83 @@
 		</repository>
 	</repositories>
 
-	<dependencies>
-		<dependency>
-			<groupId>com.google.android</groupId>
-			<artifactId>android</artifactId>
-			<version>4.1.1.4</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.actionbarsherlock</groupId>
-			<artifactId>library</artifactId>
-			<version>4.1.0</version>
-			<type>apklib</type>
-		</dependency>
-		<dependency>
-			<groupId>com.google.android</groupId>
-			<artifactId>support-v4</artifactId>
-			<version>r7</version>
-		</dependency>
-		<dependency>
-			<groupId>com.xeiam.xchange</groupId>
-			<artifactId>xchange</artifactId>
-			<version>1.2.0-SNAPSHOT</version>
-		</dependency>
-		<!-- test -->
-		<dependency>
-			<groupId>org.hamcrest</groupId>
-			<artifactId>hamcrest-library</artifactId>
-			<version>1.3</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>junit</groupId>
-			<!-- dep leaves out hamcrest classes -->
-			<artifactId>junit-dep</artifactId>
-			<version>4.10</version>
-			<scope>test</scope>
-			<exclusions>
-				<exclusion>
-					<groupId>org.hamcrest</groupId>
-					<artifactId>hamcrest-core</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-	</dependencies>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>com.google.android</groupId>
+				<artifactId>android</artifactId>
+				<version>4.1.1.4</version>
+				<scope>provided</scope>
+			</dependency>
+			<dependency>
+				<groupId>com.google.android</groupId>
+				<artifactId>android-test</artifactId>
+				<version>4.1.1.4</version>
+			</dependency>
+<!-- 			<dependency> -->
+<!-- 				<groupId>com.actionbarsherlock</groupId> -->
+<!-- 				<artifactId>library</artifactId> -->
+<!-- 				<version>4.1.0</version> -->
+<!-- 				<type>apklib</type> -->
+<!-- 			</dependency> -->
+			<dependency>
+				<groupId>com.google.android</groupId>
+				<artifactId>support-v4</artifactId>
+				<version>r7</version>
+			</dependency>
+			<dependency>
+				<groupId>com.xeiam.xchange</groupId>
+				<artifactId>xchange</artifactId>
+				<version>1.2.0-SNAPSHOT</version>
+			</dependency>
+			<!-- test -->
+			<dependency>
+				<groupId>org.hamcrest</groupId>
+				<artifactId>hamcrest-library</artifactId>
+				<version>1.3</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>junit</groupId>
+				<!-- dep leaves out hamcrest classes -->
+				<artifactId>junit-dep</artifactId>
+				<version>4.10</version>
+				<scope>test</scope>
+				<exclusions>
+					<exclusion>
+						<groupId>org.hamcrest</groupId>
+						<artifactId>hamcrest-core</artifactId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+	<modules>
+		<module>bitcoinium-main</module>
+		<module>bitcoinium-abs</module>
+	</modules>
 
 	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<configuration>
-					<source>1.6</source>
-					<target>1.6</target>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>com.jayway.maven.plugins.android.generation2</groupId>
-				<artifactId>android-maven-plugin</artifactId>
-				<extensions>true</extensions>
-			</plugin>
-		</plugins>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>com.jayway.maven.plugins.android.generation2</groupId>
+					<artifactId>android-maven-plugin</artifactId>
+					<version>3.3.2</version>
+
+					<configuration>
+						<sdk>
+							<platform>10</platform>
+						</sdk>
+						<undeployBeforeDeploy>true</undeployBeforeDeploy>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
 	</build>
 
 
