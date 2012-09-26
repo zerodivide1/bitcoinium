@@ -62,21 +62,28 @@
 				<version>4.1.1.4</version>
 				<scope>provided</scope>
 			</dependency>
-			<dependency>
-				<groupId>com.google.android</groupId>
-				<artifactId>android-test</artifactId>
-				<version>4.1.1.4</version>
-			</dependency>
-<!-- 			<dependency> -->
-<!-- 				<groupId>com.actionbarsherlock</groupId> -->
-<!-- 				<artifactId>library</artifactId> -->
-<!-- 				<version>4.1.0</version> -->
-<!-- 				<type>apklib</type> -->
-<!-- 			</dependency> -->
+
+			<!-- <dependency> -->
+			<!-- <groupId>com.google.android</groupId> -->
+			<!-- <artifactId>android-test</artifactId> -->
+			<!-- <version>4.1.1.4</version> -->
+			<!-- </dependency> -->
+			<!-- <dependency> -->
+			<!-- <groupId>com.actionbarsherlock</groupId> -->
+			<!-- <artifactId>library</artifactId> -->
+			<!-- <version>4.1.0</version> -->
+			<!-- <type>apklib</type> -->
+			<!-- </dependency> -->
 			<dependency>
 				<groupId>com.google.android</groupId>
 				<artifactId>support-v4</artifactId>
 				<version>r7</version>
+			</dependency>
+			<dependency>
+				<groupId>com.pivotallabs</groupId>
+				<artifactId>robolectric</artifactId>
+				<version>1.1</version>
+				<scope>test</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.xeiam.xchange</groupId>
@@ -84,25 +91,25 @@
 				<version>1.2.0-SNAPSHOT</version>
 			</dependency>
 			<!-- test -->
-			<dependency>
-				<groupId>org.hamcrest</groupId>
-				<artifactId>hamcrest-library</artifactId>
-				<version>1.3</version>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>junit</groupId>
-				<!-- dep leaves out hamcrest classes -->
-				<artifactId>junit-dep</artifactId>
-				<version>4.10</version>
-				<scope>test</scope>
-				<exclusions>
-					<exclusion>
-						<groupId>org.hamcrest</groupId>
-						<artifactId>hamcrest-core</artifactId>
-					</exclusion>
-				</exclusions>
-			</dependency>
+			<!-- <dependency> -->
+			<!-- <groupId>org.hamcrest</groupId> -->
+			<!-- <artifactId>hamcrest-library</artifactId> -->
+			<!-- <version>1.3</version> -->
+			<!-- <scope>test</scope> -->
+			<!-- </dependency> -->
+			<!-- <dependency> -->
+			<!-- <groupId>junit</groupId> -->
+			<!-- dep leaves out hamcrest classes -->
+			<!-- <artifactId>junit-dep</artifactId> -->
+			<!-- <version>4.10</version> -->
+			<!-- <scope>test</scope> -->
+			<!-- <exclusions> -->
+			<!-- <exclusion> -->
+			<!-- <groupId>org.hamcrest</groupId> -->
+			<!-- <artifactId>hamcrest-core</artifactId> -->
+			<!-- </exclusion> -->
+			<!-- </exclusions> -->
+			<!-- </dependency> -->
 		</dependencies>
 	</dependencyManagement>
 	<modules>

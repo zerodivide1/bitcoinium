@@ -24,11 +24,10 @@
 			<artifactId>support-v4</artifactId>
 		</dependency>
 
-<!-- 		<dependency> -->
-<!-- 			<groupId>com.pivotallabs</groupId> -->
-<!-- 			<artifactId>robolectric</artifactId> -->
-<!-- 			<scope>test</scope> -->
-<!-- 		</dependency> -->
+		<dependency>
+			<groupId>com.pivotallabs</groupId>
+			<artifactId>robolectric</artifactId>
+		</dependency>
 <!-- 		<dependency> -->
 <!-- 			<groupId>junit</groupId> -->
 <!-- 			<artifactId>junit</artifactId> -->
@@ -40,12 +39,12 @@
 		<sourceDirectory>src</sourceDirectory>
 		<testSourceDirectory>test</testSourceDirectory>
 
-<!-- 		<plugins> -->
-<!-- 			<plugin> -->
-<!-- 				<groupId>com.jayway.maven.plugins.android.generation2</groupId> -->
-<!-- 				<artifactId>android-maven-plugin</artifactId> -->
-<!-- 				<extensions>true</extensions> -->
-<!-- 			</plugin> -->
+		<plugins>
+			<plugin>
+				<groupId>com.jayway.maven.plugins.android.generation2</groupId>
+				<artifactId>android-maven-plugin</artifactId>
+				<extensions>true</extensions>
+			</plugin>
 
 <!-- 			<plugin> -->
 <!-- 				<groupId>org.apache.maven.plugins</groupId> -->
@@ -114,7 +113,7 @@
 <!-- 					</execution> -->
 <!-- 				</executions> -->
 <!-- 			</plugin> -->
-<!-- 		</plugins> -->
+		</plugins>
 
 <!-- 		<pluginManagement> -->
 <!-- 			<plugins> -->
