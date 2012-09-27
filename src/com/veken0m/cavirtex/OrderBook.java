@@ -168,9 +168,7 @@ public class OrderBook extends SherlockActivity {
 
 		for (int i = 0; i < length; i++) {
 
-			int reverse = length - 1 - i; // use this to read array from last
-											// value
-											// to first value
+			int reverse = lengthBidArray - 1 - i;
 			TableRow tr1 = new TableRow(this);
 			TextView tvAskAmount = new TextView(this);
 			TextView tvAskPrice = new TextView(this);

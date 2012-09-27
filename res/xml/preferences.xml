@@ -172,7 +172,7 @@
             android:title="Email" />
         <Preference
             android:key="customPref"
-            android:summary="1.2.4"
+            android:summary="1.2.5"
             android:title="Version" />
         <Preference
             android:key="customPref"
