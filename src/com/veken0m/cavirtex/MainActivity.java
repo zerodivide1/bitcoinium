@@ -18,11 +18,7 @@ import com.actionbarsherlock.view.MenuItem;
 // -------------------------------------------------------------------------
 /** 
  * @author Veken0m Based on Bitcoin-Alert Source by Dest
-<<<<<<< HEAD
- * @version 1.2.5 Sept 27 2012
-=======
  * @version 1.3.0 Oct 20 2012
->>>>>>> origin/develop
  */
 public class MainActivity extends SherlockFragmentActivity {
 	static String pref_favExchange;
@@ -76,13 +72,8 @@ public class MainActivity extends SherlockFragmentActivity {
 
 		@Override
 		public void onTabReselected(Tab tab, FragmentTransaction ft) {
-<<<<<<< HEAD
 			 ft.replace(R.id.fragment_lay, fragment);
-			// Toast.makeText(StartActivity.appContext, "Reselected!",
-			// Toast.LENGTH_LONG).show();
-=======
-			ft.replace(R.id.fragment_lay, fragment);
->>>>>>> origin/develop
+
 		}
 
 		@Override
