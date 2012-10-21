@@ -1,7 +1,15 @@
 package com.veken0m.cavirtex;
 
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
+import com.xeiam.xchange.Currencies;
+import com.xeiam.xchange.Exchange;
+import com.xeiam.xchange.ExchangeFactory;
+import com.xeiam.xchange.dto.marketdata.Ticker;
+import com.xeiam.xchange.service.marketdata.polling.PollingMarketDataService;
+
 import android.app.IntentService;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
@@ -10,20 +18,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.widget.RemoteViews;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.json.JSONObject;
-import org.json.JSONTokener;
 
 public class WatcherWidgetProvider extends BaseWidgetProvider {
 
+	private static PollingMarketDataService marketDataService;
+
+	
 	@Override
 	public void onReceive(Context ctxt, Intent intent) {
 
@@ -99,7 +99,7 @@ public class WatcherWidgetProvider extends BaseWidgetProvider {
 		 * the actual update method where we perform an HTTP request to VirtEx,
 		 * read the JSON, and update the text.
 		 * 
-		 * This displays a notfication if successful and sets the time to green,
+		 * This displays a notification if successful and sets the time to green,
 		 * otherwise displays failure and sets text to red
 		 */
 		private RemoteViews buildUpdate(Context context) {
@@ -107,49 +107,42 @@ public class WatcherWidgetProvider extends BaseWidgetProvider {
 			RemoteViews views = new RemoteViews(context.getPackageName(),
 					R.layout.watcher_appwidget);
 
-
 			Intent intent = new Intent(this, MainActivity.class);
 			PendingIntent pendingIntent = PendingIntent.getActivity(context, 0,
 					intent, 0);
 			views.setOnClickPendingIntent(R.id.widgetButton, pendingIntent);
-
-			HttpClient client = new DefaultHttpClient();
-			HttpGet post = new HttpGet(
-					"https://www.cavirtex.com/api/CAD/ticker.json");
+			
 			try {
+			
+			Exchange virtex = ExchangeFactory.INSTANCE.createExchange("com.xeiam.xchange.virtex.VirtExExchange");
+			marketDataService = virtex.getPollingMarketDataService();
+			Ticker ticker = marketDataService.getTicker(Currencies.BTC, Currencies.CAD);
+			
+	        float lastValue = ticker.getLast().getAmount().floatValue();
 
-				HttpResponse response = client.execute(post); // some response
-																// object
-				BufferedReader reader = new BufferedReader(
-						new InputStreamReader(
-								response.getEntity().getContent(), "UTF-8"));
-				String text = reader.readLine();
-				JSONTokener tokener = new JSONTokener(text);
+	        String lastPrice = Utils.formatMoney(Utils.formatTwoDecimals(lastValue), Currencies.CAD);
+	        String highPrice = "$" + Utils.formatTwoDecimals(ticker.getHigh().getAmount().floatValue());
+	        String lowPrice = "$" + Utils.formatTwoDecimals(ticker.getLow().getAmount().floatValue());
+	        String volume = Utils.formatTwoDecimals(ticker.getVolume().floatValue());
+	        
+	        /* Alternative Code used for testing
+				double ticker[] = new double[4];
+				ticker = Utils.fetchVirtexTickerAlt();
+				double lastValue = ticker[0];
 
-				NumberFormat numberFormat = DecimalFormat.getInstance();
-				numberFormat.setMaximumFractionDigits(2);
-				numberFormat.setMinimumFractionDigits(2);
-
-				JSONObject jTicker = new JSONObject(tokener);
-				String lastPrice = numberFormat.format(Float.valueOf(jTicker
-						.getString("last")));
-
-				views.setTextViewText(R.id.widgetVolText,
-						"Volume: " + jTicker.getString("volume"));
-				views.setTextViewText(
-						R.id.widgetLowText,
-						"$"
-								+ numberFormat.format(Float.valueOf(jTicker
-										.getString("low"))));
-
-				views.setTextViewText(
-						R.id.widgetHighText,
-						"$"
-								+ numberFormat.format(Float.valueOf(jTicker
-										.getString("high"))));
-
-				String s = "$" + lastPrice + " CAD";
-				views.setTextViewText(R.id.widgetLastText, s);
+		        String lastPrice = Utils.formatMoney(Utils.formatTwoDecimals((float) lastValue), Currencies.CAD);
+		        String highPrice = "$" + Utils.formatTwoDecimals((float) ticker[2]);
+		        String lowPrice = "$" + Utils.formatTwoDecimals((float) ticker[1]);
+		        String volume = Utils.formatTwoDecimals((float) ticker[3]);
+		        */
+	        
+	        views.setTextViewText(R.id.widgetLowText, lowPrice);
+	        views.setTextViewText(R.id.widgetHighText, highPrice);
+	        views.setTextViewText(R.id.widgetLastText, lastPrice);
+	        views.setTextViewText(R.id.widgetVolText, "Volume: " + volume);
+	        
+				
+				
 				SimpleDateFormat sdf = new SimpleDateFormat("h:mm a", Locale.US);
 				String currentTime = sdf.format(new Date());
 				views.setTextViewText(R.id.label, "Refreshed @ " + currentTime);
@@ -161,40 +154,37 @@ public class WatcherWidgetProvider extends BaseWidgetProvider {
 
 				if (pref_virtexTicker) {
 					createPermanentNotification(getApplicationContext(),
-							R.drawable.bitcoin, "Bitcoin at $" + lastPrice
-									+ " CAD", "Bitcoin value: $" + lastPrice
-									+ " CAD on VirtEx", NOTIFY_ID_VIRTEX);
+							R.drawable.bitcoin, "Bitcoin at " + lastPrice, "Bitcoin value: " + lastPrice
+									+ " on VirtEx", NOTIFY_ID_VIRTEX);
 				}
 
 				try {
 					if (pref_PriceAlarm) {
 
 						if (!pref_virtexLower.equalsIgnoreCase("")) {
-							if (Float.valueOf(lastPrice) <= Float
-									.valueOf(pref_virtexLower)) {
+							if (lastValue <= Float.valueOf(pref_virtexLower)) {
 								createNotification(getApplicationContext(),
 										R.drawable.bitcoin,
 										"Bitcoin alarm value has been reached! \n"
-												+ "Bitcoin valued at $"
-												+ lastPrice + " CAD on VirtEx",
-												"BTC @ $" + lastPrice + " CAD",
-										"Bitcoin value: $" + lastPrice
-												+ " CAD on VirtEx",
+												+ "Bitcoin valued at "
+												+ lastPrice + " on VirtEx",
+												"BTC @ " + lastPrice,
+										"Bitcoin value: " + lastPrice
+												+ " on VirtEx",
 										NOTIFY_ID_VIRTEX);
 							}
 						}
 
 						if (!pref_virtexUpper.equalsIgnoreCase("")) {
-							if (Float.valueOf(lastPrice) >= Float
-									.valueOf(pref_virtexUpper)) {
+							if (lastValue >= Float.valueOf(pref_virtexUpper)) {
 								createNotification(getApplicationContext(),
 										R.drawable.bitcoin,
 										"Bitcoin alarm value has been reached! \n"
-												+ "Bitcoin valued at $"
-												+ lastPrice + " CAD on VirtEx",
-												"BTC @ $" + lastPrice + " CAD",
-										"Bitcoin value: $" + lastPrice
-												+ " CAD on VirtEx",
+												+ "Bitcoin valued at "
+												+ lastPrice + " on VirtEx",
+												"BTC @ " + lastPrice,
+										"Bitcoin value: " + lastPrice
+												+ " on VirtEx",
 										NOTIFY_ID_VIRTEX);
 							}
 

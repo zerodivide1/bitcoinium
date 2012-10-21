@@ -1,24 +1,28 @@
 package com.veken0m.cavirtex;
 
-import android.os.Bundle;
-import android.preference.PreferenceManager;
-import android.support.v4.app.FragmentTransaction;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuItem;
-import com.actionbarsherlock.view.MenuInflater;
-
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.support.v4.app.FragmentTransaction;
+
 import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.ActionBar.Tab;
 import com.actionbarsherlock.app.SherlockFragment;
 import com.actionbarsherlock.app.SherlockFragmentActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuInflater;
+import com.actionbarsherlock.view.MenuItem;
 
 // -------------------------------------------------------------------------
 /** 
  * @author Veken0m Based on Bitcoin-Alert Source by Dest
+<<<<<<< HEAD
  * @version 1.2.5 Sept 27 2012
+=======
+ * @version 1.3.0 Oct 20 2012
+>>>>>>> origin/develop
  */
 public class MainActivity extends SherlockFragmentActivity {
 	static String pref_favExchange;
@@ -72,9 +76,13 @@ public class MainActivity extends SherlockFragmentActivity {
 
 		@Override
 		public void onTabReselected(Tab tab, FragmentTransaction ft) {
+<<<<<<< HEAD
 			 ft.replace(R.id.fragment_lay, fragment);
 			// Toast.makeText(StartActivity.appContext, "Reselected!",
 			// Toast.LENGTH_LONG).show();
+=======
+			ft.replace(R.id.fragment_lay, fragment);
+>>>>>>> origin/develop
 		}
 
 		@Override

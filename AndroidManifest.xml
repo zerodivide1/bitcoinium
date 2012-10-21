@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.veken0m.cavirtex"
+<<<<<<< HEAD
     android:versionCode="16"
     android:versionName="1.2.5" >
+=======
+    android:versionCode="17"
+    android:versionName="1.3.0" >
+>>>>>>> origin/develop
 
     <uses-sdk
         android:minSdkVersion="8"
@@ -60,7 +65,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".OrderBook"
+            android:name=".Orderbook"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="Orderbook" >
         </activity>

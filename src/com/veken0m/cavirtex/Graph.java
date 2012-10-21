@@ -1,29 +1,35 @@
 package com.veken0m.cavirtex;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.text.Format;
 import java.text.SimpleDateFormat;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.json.JSONTokener;
+import java.util.List;
+
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.res.Configuration;
+import android.os.Bundle;
+import android.os.Handler;
+import android.preference.PreferenceManager;
+import android.util.Log;
 
 import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
-import android.app.AlertDialog;
-import android.app.ProgressDialog;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.res.Configuration;
-import android.os.Bundle;
-import android.os.Handler;
+import com.veken0m.cavirtex.GraphView.GraphViewData;
+import com.veken0m.cavirtex.GraphView.GraphViewSeries;
+import com.veken0m.cavirtex.LineGraphView;
+import com.xeiam.xchange.Currencies;
+import com.xeiam.xchange.Exchange;
+import com.xeiam.xchange.ExchangeFactory;
+import com.xeiam.xchange.dto.marketdata.Trade;
+import com.xeiam.xchange.dto.marketdata.Trades;
+import com.xeiam.xchange.service.marketdata.polling.PollingMarketDataService;
 
 public class Graph extends SherlockActivity {
 
@@ -32,20 +38,25 @@ public class Graph extends SherlockActivity {
 	final Handler mOrderHandler = new Handler();
 	public static final String VIRTEX = "com.veken0m.cavirtex.VIRTEX";
 	public static final String MTGOX = "com.veken0m.cavirtex.MTGOX";
-
-	public static final String sVirtex = "VirtEx";
-	public static final String sMtgox = "MtGox";
-	public static final String sCAD = "CAD";
-	public static final String sUSD = "USD";
 	public static String exchangeName = "";
 	public static String currency = "";
-
+	private static PollingMarketDataService marketDataService;
 	public String exchange = VIRTEX;
+	public String xchangeExchange = null;
+
+	/**
+	 * Variables required for LineGraphView
+	 */
+	LineGraphView graphView = null;
+	static Boolean pref_graphMode;
+	static Boolean pref_scaleMode;
+	static int pref_mtgoxWindowSize;
+	static int pref_virtexWindowSize;
 
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.minerstats);
-		
+		setContentView(R.layout.graph);
+
 		ActionBar actionbar = getSupportActionBar();
 		actionbar.show();
 
@@ -55,17 +66,20 @@ public class Graph extends SherlockActivity {
 		}
 
 		if (exchange.equalsIgnoreCase(MTGOX)) {
-			exchangeName = sMtgox;
-			currency = sUSD;
+			exchangeName = "MtGox";
+			xchangeExchange = "com.xeiam.xchange.mtgox.v1.MtGoxExchange";
+			currency = Currencies.USD;
 		}
 		if (exchange.equalsIgnoreCase(VIRTEX)) {
-			exchangeName = sVirtex;
-			currency = sCAD;
+			exchangeName = "VirtEx";
+			xchangeExchange = "com.xeiam.xchange.virtex.VirtExExchange";
+			currency = Currencies.CAD;
 		}
 
+		readPreferences(getApplicationContext());
 		viewGraph();
 	}
-	
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		MenuInflater inflater = getSupportMenuInflater();
@@ -83,23 +97,15 @@ public class Graph extends SherlockActivity {
 		if (item.getItemId() == R.id.preferences) {
 			startActivity(new Intent(this, Preferences.class));
 		}
-		// if (item.getItemId() == R.id.scores) {
-		// startActivity(new Intent(this, ScoresActivity.class));
-		// }
-		// if (item.getItemId() == R.id.handicap) {
-		// startActivity(new Intent(this, HandicapActivity.class));
-		// }
 		return super.onOptionsItemSelected(item);
 	}
-	
 
 	public class GraphThread extends Thread {
 
 		@Override
 		public void run() {
 			generatePreviousPriceGraph();
-			mOrderHandler.post(mGraphView); // after retrieveOrders is done, do
-											// this
+			mOrderHandler.post(mGraphView);
 		}
 
 	}
@@ -111,9 +117,12 @@ public class Graph extends SherlockActivity {
 		@Override
 		public void run() {
 			safelyDismiss(graphProgressDialog);
-			if (g_graphView != null) {
-
-				setContentView(g_graphView);
+			if (g_graphView != null || graphView != null) {
+				if(!pref_graphMode){
+					setContentView(graphView);
+				} else {
+					setContentView(g_graphView);	
+				}
 			} else {
 				createPopup("Unable to retrieve transactions from "
 						+ exchangeName + ", check your 3G or WiFi connection");
@@ -122,127 +131,61 @@ public class Graph extends SherlockActivity {
 	};
 
 	/**
-	 * generatePreviousPriceGraph prepares price graph of the last 48 hrs -It
-	 * connects to Virtex, reads the JSON, and plots a GraphView of it
+	 * generatePreviousPriceGraph prepares price graph of all the values available from the API 
+	 * It connects to exchange, reads the JSON, and plots a GraphView of it
 	 */
 	private void generatePreviousPriceGraph() {
 
 		g_graphView = null;
-		HttpClient client = new DefaultHttpClient();
 
-		HttpGet post = new HttpGet();
-
-		if (exchange.equalsIgnoreCase(MTGOX)) {
-			post = new HttpGet("https://mtgox.com/api/1/BTCUSD/trades");
-		}
-
-		if (exchange.equalsIgnoreCase(VIRTEX)) {
-			post = new HttpGet("https://www.cavirtex.com/api/CAD/trades.json");
-
-		}
 		try {
-			HttpResponse response = null;
 
-			if (exchange.equalsIgnoreCase(MTGOX)) {
-				try {
-					response = client.execute(post);
-				} catch (Exception e) {
-					post = new HttpGet(
-							"http://anyorigin.com/get/?url=https://mtgox.com/api/1/BTCUSD/trades");
-					response = client.execute(post);
-				}
+			Exchange exchange = ExchangeFactory.INSTANCE
+					.createExchange(xchangeExchange);
+			marketDataService = exchange.getPollingMarketDataService();
+			Trades trades = marketDataService.getTrades(Currencies.BTC,
+					currency);
 
-			}
+			List<Trade> tradesList = trades.getTrades();
 
-			if (exchange.equalsIgnoreCase(VIRTEX)) {
-				response = client.execute(post);
-			}
+			float[] values = new float[tradesList.size()];
+			float[] dates = new float[tradesList.size()];
+			GraphViewData[] data = new GraphViewData[values.length];
 
-			BufferedReader reader = new BufferedReader(new InputStreamReader(
-					response.getEntity().getContent(), "UTF-8"));
-			String text = reader.readLine();
-			JSONTokener tokener = new JSONTokener(text);
-			JSONArray jArray = new JSONArray();
-
-			if (exchange.equalsIgnoreCase(MTGOX)) {
-				JSONObject jJSON = new JSONObject(tokener);
-				try {
-					jArray = jJSON.getJSONArray("return");
-				} catch (Exception e) {
-					JSONObject jcontents = jJSON.getJSONObject("contents");
-					jArray = jcontents.getJSONArray("return");
-				}
-
-			}
-
-			if (exchange.equalsIgnoreCase(VIRTEX)) {
-				jArray = new JSONArray(tokener);
-			}
-
-			JSONObject jKey;
-
-			if (jArray.length() <= 0)
-				return;
-
-			float[] values = new float[jArray.length()];
-			float[] dates = new float[jArray.length()];
-
-			for (int i = 0; i < jArray.length(); i++) {
-				jKey = jArray.getJSONObject(i);
-				values[i] = Float.valueOf(jKey.getString("price"));
-			}
-
-			/**
-			 * Lets count the min and max values so we can set our axis
-			 */
-
-			for (int i = 0; i < jArray.length(); i++) {
-				jKey = jArray.getJSONObject(i);
-				dates[i] = Float.valueOf(jKey.getString("date"));
-			}
+			final Format formatter = new SimpleDateFormat("MMM dd @ HH:mm");
 
 			float largest = Integer.MIN_VALUE;
 			float smallest = Integer.MAX_VALUE;
-			float oldestDate = dates[0];
-			float newestDate = dates[dates.length - 1];
-			float midDate = dates[dates.length / 2 - 1];
+			
+			int tradesListSize = tradesList.size();
+			for (int i = 0; i < tradesListSize; i++) {
+				Trade trade = tradesList.get(i);
+				values[i] = trade.getPrice().getAmount().floatValue();
+				dates[i] = Float.valueOf(trade.getTimestamp().getMillis());
 
-			for (int i = 0; i < values.length; i++)
-				if (values[i] > largest)
+				if (values[i] > largest) {
 					largest = values[i];
-
-			Format formatter = new SimpleDateFormat("MMM dd @ HH:mm");
-
-			String sOldestDate = formatter.format(oldestDate * 1000);
-			String sNewestDate = formatter.format(newestDate * 1000);
-			String sMidDate = formatter.format(midDate * 1000);
-
-			// String sOldestDate =
-			// DateFormat.getDateInstance(DateFormat.MEDIUM,
-			// Locale.US).format(oldestDate*1000);
-			// String sNewestDate =
-			// DateFormat.getDateInstance(DateFormat.MEDIUM,
-			// Locale.US).format(newestDate*1000);
-			// String sMidDate = DateFormat.getDateInstance(DateFormat.MEDIUM,
-			// Locale.US).format(midDate*1000);
-
-			for (int i = 0; i < values.length; i++)
-				if (values[i] < smallest)
+				}
+				if (values[i] < smallest) {
 					smallest = values[i];
+				}
+			}
+		
+			if (pref_graphMode) {
+				
 
-			// Add spacing between edge of screen and graph
-			double graphPadding = 0.01;
-			smallest -= graphPadding;
-			largest += graphPadding;
+				String sOldestDate = formatter.format(dates[0]);
+				String sMidDate = formatter.format(dates[dates.length / 2 - 1]);
+				String sNewestDate = formatter.format(dates[dates.length - 1]);
 
-			// min, max, steps, pre string, post string, number of decimal
-			// places
-			String[] verlabels = GraphViewer.createLabels(smallest, largest,
-					10, "$", "", 4);
+				// min, max, steps, pre string, post string, number of decimal
+				// places
+				String[] verlabels = GraphViewer.createLabels(smallest, largest,
+						10, "$", "", 4);
 
-			String[] horlabels = new String[] { sOldestDate, "", "", sMidDate,
-					"", "", sNewestDate };
-
+				String[] horlabels = new String[] { sOldestDate, "", "", sMidDate,
+						"", "", sNewestDate };
+				
 			g_graphView = new GraphViewer(this, values, currency
 					+ "/BTC since " + sOldestDate, // title
 					horlabels, // horizontal labels
@@ -250,10 +193,44 @@ public class Graph extends SherlockActivity {
 					GraphViewer.LINE, // type of graph
 					smallest, // min
 					largest); // max
+			} else {
+				
+				for (int i = 0; i < tradesListSize; i++) {
+					data[i] = new GraphViewData(dates[i], values[i]);
+				}
+				
+				graphView = new LineGraphView(this, exchangeName + ": "
+						+ currency + "/BTC") {
+					@Override
+					protected String formatLabel(double value, boolean isValueX) {
+						if (isValueX) {
+							return formatter.format(value);
+						} else
+							return super.formatLabel(value, isValueX);
+					}
+				};
+				
+				double windowSize;
+				if (exchangeName.equalsIgnoreCase("mtgox")) {
+					windowSize = pref_mtgoxWindowSize * 3600000;
+				} else {
+					windowSize = pref_virtexWindowSize * 3600000;
+				}
+				//startValue enables graph window to be aligned with latest trades
+				double startValue = dates[dates.length - 1] - windowSize;
+				graphView.addSeries(new GraphViewSeries(data));
+				graphView.setViewPort(startValue, windowSize);
+				graphView.setScrollable(true);
+				graphView.setScalable(true); 
+				if (!pref_scaleMode) {
+					graphView.setManualYAxisBounds(largest, smallest);
+				}
+		
+				
+			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			return;
 		}
 
 	}
@@ -275,9 +252,13 @@ public class Graph extends SherlockActivity {
 	@Override
 	public void onConfigurationChanged(Configuration newConfig) {
 		super.onConfigurationChanged(newConfig);
-		setContentView(R.layout.minerstats);
-		if (g_graphView != null) {
-			setContentView(g_graphView);
+		setContentView(R.layout.graph);
+		if (g_graphView != null || graphView != null) {
+			if(!pref_graphMode){
+				setContentView(graphView);
+			} else {
+				setContentView(g_graphView);	
+			}
 		} else {
 			viewGraph();
 		}
@@ -294,9 +275,37 @@ public class Graph extends SherlockActivity {
 			return;
 		}
 		graphProgressDialog = ProgressDialog.show(this, "Working...",
-				"Retrieving trades", true, true);
+				"Retrieving trades... \n\nNote: May take a while on large exchanges.", true, true);
 		GraphThread gt = new GraphThread();
 		gt.start();
+	}
+
+	protected static void readPreferences(Context context) {
+		// Get the xml/preferences.xml preferences
+		SharedPreferences prefs = PreferenceManager
+				.getDefaultSharedPreferences(context);
+
+		SharedPreferences.OnSharedPreferenceChangeListener prefListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+			public void onSharedPreferenceChanged(SharedPreferences pPrefs,
+					String key) {
+
+				pref_graphMode = pPrefs.getBoolean("graphmodePref", false);
+				pref_scaleMode = pPrefs.getBoolean("graphscalePref", false);
+				pref_mtgoxWindowSize = Integer.parseInt(pPrefs.getString(
+						"mtgoxWindowSize", "4"));
+				pref_virtexWindowSize = Integer.parseInt(pPrefs.getString(
+						"virtexWindowSize", "36"));
+			}
+		};
+
+		prefs.registerOnSharedPreferenceChangeListener(prefListener);
+
+		pref_graphMode = prefs.getBoolean("graphmodePref", false);
+		pref_scaleMode = prefs.getBoolean("graphscalePref", false);
+		pref_mtgoxWindowSize = Integer.parseInt(prefs.getString(
+				"mtgoxWindowSize", "4"));
+		pref_virtexWindowSize = Integer.parseInt(prefs.getString(
+				"virtexWindowSize", "36"));
 	}
 
 }
