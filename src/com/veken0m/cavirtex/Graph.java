@@ -43,6 +43,7 @@ public class Graph extends SherlockActivity {
 	private static PollingMarketDataService marketDataService;
 	public String exchange = VIRTEX;
 	public String xchangeExchange = null;
+	static String pref_mtgoxCurrency;
 
 	/**
 	 * Variables required for LineGraphView
@@ -56,9 +57,11 @@ public class Graph extends SherlockActivity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.graph);
+		readPreferences(getApplicationContext());
 
 		ActionBar actionbar = getSupportActionBar();
 		actionbar.show();
+		
 
 		Bundle extras = getIntent().getExtras();
 		if (extras != null) {
@@ -68,7 +71,7 @@ public class Graph extends SherlockActivity {
 		if (exchange.equalsIgnoreCase(MTGOX)) {
 			exchangeName = "MtGox";
 			xchangeExchange = "com.xeiam.xchange.mtgox.v1.MtGoxExchange";
-			currency = Currencies.USD;
+			currency = pref_mtgoxCurrency;
 		}
 		if (exchange.equalsIgnoreCase(VIRTEX)) {
 			exchangeName = "VirtEx";
@@ -76,7 +79,6 @@ public class Graph extends SherlockActivity {
 			currency = Currencies.CAD;
 		}
 
-		readPreferences(getApplicationContext());
 		viewGraph();
 	}
 
@@ -295,6 +297,7 @@ public class Graph extends SherlockActivity {
 						"mtgoxWindowSize", "4"));
 				pref_virtexWindowSize = Integer.parseInt(pPrefs.getString(
 						"virtexWindowSize", "36"));
+				pref_mtgoxCurrency = pPrefs.getString("mtgoxCurrencyPref", "USD");
 			}
 		};
 
@@ -306,6 +309,7 @@ public class Graph extends SherlockActivity {
 				"mtgoxWindowSize", "4"));
 		pref_virtexWindowSize = Integer.parseInt(prefs.getString(
 				"virtexWindowSize", "36"));
+		pref_mtgoxCurrency = prefs.getString("mtgoxCurrencyPref", "USD");
 	}
 
 }

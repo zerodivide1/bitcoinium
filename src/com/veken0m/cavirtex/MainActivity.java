@@ -72,7 +72,7 @@ public class MainActivity extends SherlockFragmentActivity {
 
 		@Override
 		public void onTabReselected(Tab tab, FragmentTransaction ft) {
-			 ft.replace(R.id.fragment_lay, fragment);
+			ft.replace(R.id.fragment_lay, fragment);
 
 		}
 

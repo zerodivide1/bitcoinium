@@ -44,10 +44,11 @@ public class Orderbook extends SherlockActivity {
 	protected static final String sVirtex = "VirtEx";
 	protected static final String sMtgox = "MtGox";
 	protected static String exchangeName = "";
-	protected static String currency = "";
+	protected String currency;
 	protected String xchangeExchange = null;
 	protected List<LimitOrder> listAsks;
 	protected List<LimitOrder> listBids;
+	protected static String pref_mtgoxCurrency;
 	/**
 	 * List of preference variables
 	 */
@@ -63,6 +64,8 @@ public class Orderbook extends SherlockActivity {
 
 		ActionBar actionbar = getSupportActionBar();
 		actionbar.show();
+		
+		readPreferences(getApplicationContext());
 
 		Bundle extras = getIntent().getExtras();
 		if (extras != null) {
@@ -72,7 +75,7 @@ public class Orderbook extends SherlockActivity {
 		if (exchange.equalsIgnoreCase(MTGOX)) {
 			exchangeName = sMtgox;
 			xchangeExchange =  "com.xeiam.xchange.mtgox.v1.MtGoxExchange";
-			currency = Currencies.USD;
+			currency = pref_mtgoxCurrency;
 		}
 		if (exchange.equalsIgnoreCase(VIRTEX)) {
 			exchangeName = sVirtex;
@@ -80,7 +83,6 @@ public class Orderbook extends SherlockActivity {
 			currency = Currencies.CAD;
 		}
 
-		readPreferences(getApplicationContext());
 		viewOrderbook();
 	}
 
@@ -126,6 +128,7 @@ public class Orderbook extends SherlockActivity {
 						"highlightUpper", "50"));
 				pref_highlightLow = Integer.parseInt(pPrefs.getString(
 						"highlightLower", "10"));
+				pref_mtgoxCurrency = pPrefs.getString("mtgoxCurrencyPref", "USD");
 			}
 		};
 
@@ -136,6 +139,7 @@ public class Orderbook extends SherlockActivity {
 				"50"));
 		pref_highlightLow = Integer.parseInt(prefs.getString("highlightLower",
 				"10"));
+		pref_mtgoxCurrency = prefs.getString("mtgoxCurrencyPref", "USD");
 	}
 	
 	/**
@@ -162,6 +166,7 @@ public class Orderbook extends SherlockActivity {
 
 		} catch (Exception e) {
 			connectionFail = true;
+			e.printStackTrace();
 		}
 	
 

@@ -9,6 +9,13 @@
             android:key="favExchangePref"
             android:summary="Favorite exchange will automatically be selected when Bitcoinium opens"
             android:title="Favorite Exchange" />
+        <ListPreference
+            android:defaultValue="USD"
+            android:entries="@array/mtgoxcurrencies"
+            android:entryValues="@array/currencies"
+            android:key="mtgoxCurrencyPref"
+            android:summary="MtGox prices will be displayed in selected currency"
+            android:title="MtGox Currency" />
     </PreferenceCategory>
     <PreferenceCategory android:title="Widget Settings" >
         <PreferenceScreen
@@ -36,6 +43,7 @@
                 <!--
         <PreferenceCategory
                 android:title="Notification Menu Ticker">
+<<<<<<< HEAD
         <CheckBoxPreference
                         android:title="Enable VirtEx Notification Menu Ticker (widget needs to be active)"
                         android:defaultValue="false"
@@ -43,6 +51,15 @@
                         android:key="virtexTickerPref" />
         
         <CheckBoxPreference
+=======
+        <CheckBoxPreference
+                        android:title="Enable VirtEx Notification Menu Ticker (widget needs to be active)"
+                        android:defaultValue="false"
+                        android:summary="Will enable a permanent VirtEx ticker notification in the notification menu"
+                        android:key="virtexTickerPref" />
+        
+        <CheckBoxPreference
+>>>>>>> origin/develop
                         android:title="Enable MtGox Notification Menu Ticker (widget needs to be active)"
                         android:defaultValue="false"
                         android:summary="Will enable a permanent MtGox ticker notification in the notification menu"
@@ -138,11 +155,6 @@
             android:title="Deepbit API token" />
         <EditTextPreference
             android:defaultValue=""
-            android:key="bitminterUser"
-            android:summary="Enter your BitMinter Username to use MinerStats"
-            android:title="BitMinter API Username" />
-        <EditTextPreference
-            android:defaultValue=""
             android:key="bitminterKey"
             android:summary="Enter your BitMinter API token to use MinerStats"
             android:title="BitMinter API token" />
@@ -232,9 +244,6 @@
             android:key="customPref"
             android:summary="veken0m.apps@gmail.com"
             android:title="Email" />
-        <Preference
-            android:key="customPref"
-            android:summary="1.3.0" />
         <Preference
             android:key="customPref"
             android:summary="Tim Molter - XChange Library\nDest Romano - Creator of Bitcoin Alert \nArno Den Hond - GraphView library"
