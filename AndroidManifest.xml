@@ -72,7 +72,7 @@
             android:label="Preferences" >
         </activity>
         <activity
-            android:name="com.veken0m.cavirtex.WebViewerActivityActivity"
+            android:name="com.veken0m.cavirtex.WebViewerActivity"
             android:configChanges="orientation|keyboard|keyboardHidden|screenSize"
             android:label="OrderBook" >
         </activity>
