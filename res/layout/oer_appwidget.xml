@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="140dp"
+    android:layout_height="82dp"
+    android:id="@+id/widget_layout2"
+    android:background="#80000000"
+    android:padding="5dp" >
+
+    <TextView
+        android:id="@+id/oerBaseCurrency"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:text="@string/exchange"
+        android:textColor="#FDD017"
+        android:paddingLeft="3dp"
+        android:paddingRight="3dp"
+        android:textSize="12sp" >
+    </TextView>
+
+    <TextView
+        android:id="@+id/oerCounterCurrency"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/oerBaseCurrency"
+        android:layout_centerHorizontal="true"
+        android:text="@string/last"
+        android:textColor="#FDD017"
+        android:textSize="18sp" />
+
+    <TextView
+        android:id="@+id/oer_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/oerCounterCurrency"
+        android:layout_centerHorizontal="true"
+        android:text="@string/time"
+        android:textSize="10sp" />
+
+    <Button
+        android:id="@+id/oerWidgetButton"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:background="#00000000" />
+
+</RelativeLayout>

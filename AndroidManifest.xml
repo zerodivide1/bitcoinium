@@ -32,6 +32,20 @@
         </receiver>
 
         <service android:name="com.veken0m.bitcoinium.WidgetProvider$UpdateService" />
+        
+        <receiver
+            android:name="com.veken0m.bitcoinium.OERWidgetProvider"
+            android:label="Open Exchange Rates" >
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_ENABLED" />
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="android.appwidget.action.APPWIDGET_DISABLED" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/oer_appwidget_info" />
+        </receiver>
 
         <activity
             android:name=".MainActivity"
