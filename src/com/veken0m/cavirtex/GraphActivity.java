@@ -14,81 +14,85 @@ import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
+import android.widget.Toast;
 
 import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
+import com.jjoe64.graphview.GraphView.GraphViewData;
+import com.jjoe64.graphview.GraphViewSeries;
+import com.jjoe64.graphview.LineGraphView;
 import com.veken0m.graphing.GraphViewer;
-import com.veken0m.graphing.LineGraphView;
-import com.veken0m.graphing.GraphView.GraphViewData;
-import com.veken0m.graphing.GraphView.GraphViewSeries;
-import com.xeiam.xchange.Currencies;
 import com.xeiam.xchange.ExchangeFactory;
+import com.xeiam.xchange.currency.Currencies;
 import com.xeiam.xchange.dto.marketdata.Trade;
 import com.xeiam.xchange.dto.marketdata.Trades;
 
 public class GraphActivity extends SherlockActivity {
 
-	private GraphViewer g_graphView = null;
+	private GraphViewer g_graphView;
 	private ProgressDialog graphProgressDialog;
 	private static final Handler mOrderHandler = new Handler();
-	public static final String VIRTEX = "com.veken0m.cavirtex.VIRTEX";
-	public static final String MTGOX = "com.veken0m.cavirtex.MTGOX";
-	public static String exchangeName = "";
-	public static String currency = "";
-	public String exchange = VIRTEX;
-	public String xchangeExchange = null;
-	static String pref_mtgoxCurrency;
+	public static String exchangeName;
+	public String xchangeExchange;
+	static String pref_currency;
 
 	/**
 	 * Variables required for LineGraphView
 	 */
-	LineGraphView graphView = null;
+	LineGraphView graphView;
 	static Boolean pref_graphMode;
 	static Boolean pref_scaleMode;
-	static int pref_mtgoxWindowSize;
-	static int pref_virtexWindowSize;
+	static int pref_windowSize;
 
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.graph);
-		readPreferences(getApplicationContext());
 
 		ActionBar actionbar = getSupportActionBar();
 		actionbar.show();
 
 		Bundle extras = getIntent().getExtras();
 		if (extras != null) {
-			exchange = extras.getString("exchange");
+			exchangeName = extras.getString("exchange");
 		}
 
-		if (exchange.equalsIgnoreCase(MTGOX)) {
-			exchangeName = "MtGox";
-			xchangeExchange = "com.xeiam.xchange.mtgox.v1.MtGoxExchange";
-			currency = pref_mtgoxCurrency;
-		}
-		if (exchange.equalsIgnoreCase(VIRTEX)) {
-			exchangeName = "VirtEx";
-			xchangeExchange = "com.xeiam.xchange.virtex.VirtExExchange";
-			currency = Currencies.CAD;
-		}
+		Exchange exchange = new Exchange(getResources().getStringArray(
+				getResources().getIdentifier(exchangeName, "array",
+						this.getPackageName())));
 
-		viewGraph();
+		exchangeName = exchange.getExchangeName();
+		xchangeExchange = exchange.getClassName();
+		String defaultCurrency = exchange.getMainCurrency();
+		String prefix = exchange.getPrefix();
+
+		readPreferences(getApplicationContext(), prefix, defaultCurrency);
+		
+		if (exchange.supportsPriceGraph()) {
+			setContentView(R.layout.graph);
+			viewGraph();
+		} else {
+			Toast.makeText(getApplicationContext(),
+					exchangeName + " does not currently support Price Graph",
+					Toast.LENGTH_LONG).show();
+		}
 	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		MenuInflater inflater = getSupportMenuInflater();
-		inflater.inflate(R.menu.menu, menu);
+		inflater.inflate(R.menu.action_menu, menu);
 		return true;
 	}
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		if (item.getItemId() == R.id.preferences) {
+		if (item.getItemId() == R.id.action_preferences) {
 			startActivity(new Intent(this, PreferencesActivity.class));
+		}
+		if (item.getItemId() == R.id.action_refresh) {
+			viewGraph();
 		}
 		return super.onOptionsItemSelected(item);
 	}
@@ -132,16 +136,15 @@ public class GraphActivity extends SherlockActivity {
 		g_graphView = null;
 
 		try {
-
 			final Trades trades = ExchangeFactory.INSTANCE
-					.createExchange(xchangeExchange)
+					.createExchange(xchangeExchange.replace("0", "1")) // Use API V1 instead of V0 for MtGox Trades
 					.getPollingMarketDataService()
-					.getTrades(Currencies.BTC, currency);
+					.getTrades(Currencies.BTC, pref_currency);
 
 			List<Trade> tradesList = trades.getTrades();
 
 			float[] values = new float[tradesList.size()];
-			float[] dates = new float[tradesList.size()];
+			long[] dates = new long[tradesList.size()];
 			final GraphViewData[] data = new GraphViewData[values.length];
 
 			final Format formatter = new SimpleDateFormat("MMM dd @ HH:mm");
@@ -153,8 +156,7 @@ public class GraphActivity extends SherlockActivity {
 			for (int i = 0; i < tradesListSize; i++) {
 				final Trade trade = tradesList.get(i);
 				values[i] = trade.getPrice().getAmount().floatValue();
-				dates[i] = Float.valueOf(trade.getTimestamp().getMillis());
-
+				dates[i] = trade.getTimestamp().getTime();
 				if (values[i] > largest) {
 					largest = values[i];
 				}
@@ -166,8 +168,10 @@ public class GraphActivity extends SherlockActivity {
 			if (pref_graphMode) {
 
 				final String sOldestDate = formatter.format(dates[0]);
-				final String sMidDate = formatter.format(dates[dates.length / 2 - 1]);
-				final String sNewestDate = formatter.format(dates[dates.length - 1]);
+				final String sMidDate = formatter
+						.format(dates[dates.length / 2 - 1]);
+				final String sNewestDate = formatter
+						.format(dates[dates.length - 1]);
 
 				// min, max, steps, pre string, post string, number of decimal
 				// places
@@ -177,7 +181,7 @@ public class GraphActivity extends SherlockActivity {
 				final String[] horlabels = new String[] { sOldestDate, "", "",
 						sMidDate, "", "", sNewestDate };
 
-				g_graphView = new GraphViewer(this, values, currency
+				g_graphView = new GraphViewer(this, values, pref_currency
 						+ "/BTC since " + sOldestDate, // title
 						horlabels, // horizontal labels
 						verlabels, // vertical labels
@@ -191,7 +195,7 @@ public class GraphActivity extends SherlockActivity {
 				}
 
 				graphView = new LineGraphView(this, exchangeName + ": "
-						+ currency + "/BTC") {
+						+ pref_currency + "/BTC") {
 					@Override
 					protected String formatLabel(double value, boolean isValueX) {
 						if (isValueX) {
@@ -202,11 +206,7 @@ public class GraphActivity extends SherlockActivity {
 				};
 
 				double windowSize;
-				if (exchangeName.equalsIgnoreCase("mtgox")) {
-					windowSize = pref_mtgoxWindowSize * 3600000;
-				} else {
-					windowSize = pref_virtexWindowSize * 3600000;
-				}
+				windowSize = pref_windowSize * 3600000;
 				// startValue enables graph window to be aligned with latest
 				// trades
 				final double startValue = dates[dates.length - 1] - windowSize;
@@ -214,6 +214,7 @@ public class GraphActivity extends SherlockActivity {
 				graphView.setViewPort(startValue, windowSize);
 				graphView.setScrollable(true);
 				graphView.setScalable(true);
+				
 				if (!pref_scaleMode) {
 					graphView.setManualYAxisBounds(largest, smallest);
 				}
@@ -274,18 +275,18 @@ public class GraphActivity extends SherlockActivity {
 		gt.start();
 	}
 
-	protected static void readPreferences(Context context) {
+	protected static void readPreferences(Context context, String prefix,
+			String defaultCurrency) {
 		// Get the xml/preferences.xml preferences
 		SharedPreferences prefs = PreferenceManager
 				.getDefaultSharedPreferences(context);
 
 		pref_graphMode = prefs.getBoolean("graphmodePref", false);
 		pref_scaleMode = prefs.getBoolean("graphscalePref", false);
-		pref_mtgoxWindowSize = Integer.parseInt(prefs.getString(
-				"mtgoxWindowSize", "4"));
-		pref_virtexWindowSize = Integer.parseInt(prefs.getString(
-				"virtexWindowSize", "36"));
-		pref_mtgoxCurrency = prefs.getString("mtgoxCurrencyPref", "USD");
+		pref_windowSize = Integer.parseInt(prefs.getString(prefix
+				+ "WindowSize", "12"));
+		pref_currency = prefs.getString(prefix + "CurrencyPref",
+				defaultCurrency);
 	}
 
 }

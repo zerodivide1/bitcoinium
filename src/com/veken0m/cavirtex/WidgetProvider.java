@@ -1,9 +1,5 @@
 package com.veken0m.cavirtex;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
-
 import android.app.IntentService;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
@@ -12,9 +8,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.widget.RemoteViews;
+import android.widget.Toast;
 
-import com.xeiam.xchange.Currencies;
 import com.xeiam.xchange.ExchangeFactory;
+import com.xeiam.xchange.currency.Currencies;
 import com.xeiam.xchange.dto.marketdata.Ticker;
 
 public class WidgetProvider extends BaseWidgetProvider {
@@ -64,51 +61,45 @@ public class WidgetProvider extends BaseWidgetProvider {
 
 		public void buildUpdate(Context context) {
 
-			readPreferences(context);
-
 			AppWidgetManager widgetManager = AppWidgetManager
 					.getInstance(context);
 			ComponentName widgetComponent = new ComponentName(context,
 					WidgetProvider.class);
 			int[] widgetIds = widgetManager.getAppWidgetIds(widgetComponent);
 
-			// Date for widget "Refreshed" label
-			final SimpleDateFormat sdf = new SimpleDateFormat("h:mm a",
-					Locale.US);
-			final String currentTime = sdf.format(new Date());
-
-			final RemoteViews views = new RemoteViews(context.getPackageName(),
-					R.layout.appwidget);
-
 			final Intent intent = new Intent(context, MainActivity.class);
 			final PendingIntent pendingIntent = PendingIntent.getActivity(
 					context, 0, intent, 0);
 
 			for (int appWidgetId : widgetIds) {
+				RemoteViews views = new RemoteViews(context.getPackageName(),
+						R.layout.appwidget);
+				//views.setInt(R.id.widget_layout, "setBackgroundColor", android.R.color.white); //sets the widget background color
 
-				String pref_widgetExchange = WidgetConfigureActivity
-						.loadExchangePref(context, appWidgetId);
-				String pref_currency = "NA";
-				String exchange = "NA";
-				int NOTIFY_ID = -1;
+				String pref_widget = WidgetConfigureActivity.loadExchangePref(
+						context, appWidgetId);
+				String pref_currency = WidgetConfigureActivity
+						.loadCurrencyPref(context, appWidgetId);
 
-				if (pref_widgetExchange
-						.equals("com.xeiam.xchange.virtex.VirtExExchange")) {
-					pref_currency = "CAD";
-					exchange = "VirtEx";
-					pref_mtgoxLower = pref_virtexLower;
-					pref_mtgoxUpper = pref_virtexUpper;
-					NOTIFY_ID = NOTIFY_ID_VIRTEX;
-				} else if (pref_widgetExchange.equals("com.xeiam.xchange.mtgox.v1.MtGoxExchange")) 
-					{
-					pref_currency = WidgetConfigureActivity.loadCurrencyPref(
-							context, appWidgetId);
-					exchange = "MtGox";
-					NOTIFY_ID = NOTIFY_ID_MTGOX;
+				Exchange exchange = new Exchange(getResources().getStringArray(
+						getResources().getIdentifier(pref_widget, "array",
+								this.getPackageName())));
+
+				int NOTIFY_ID = exchange.getNotificationID();
+				String exchangeName = exchange.getExchangeName();
+				String pref_widgetExchange = exchange.getClassName();
+				String defaultCurrency = exchange.getMainCurrency();
+				String prefix = exchange.getPrefix();
+
+				// BitcoinCentral is too long for widget, change to B.Central
+				if (exchangeName.equalsIgnoreCase("BitcoinCentral")) {
+					exchangeName = "B.Central";
 				}
 
-				if ((pref_currency.length() == 3) && !(exchange.equals("NA"))
-						) {
+				readPreferences(context, prefix, defaultCurrency);
+
+				if ((pref_currency.length() == 3)
+						&& !(exchangeName.equals("NA"))) {
 
 					views.setOnClickPendingIntent(R.id.widgetButton,
 							pendingIntent);
@@ -122,21 +113,39 @@ public class WidgetProvider extends BaseWidgetProvider {
 								.getTicker(Currencies.BTC, pref_currency);
 
 						// Retrieve values from ticker
-						Float lastValue = ticker.getLast().getAmount()
+						float lastValue = ticker.getLast().getAmount()
 								.floatValue();
 
 						final String lastPrice = Utils.formatWidgetMoney(
 								lastValue, pref_currency, true);
-						final String highPrice = Utils.formatWidgetMoney(ticker
-								.getHigh().getAmount().floatValue(),
-								pref_currency, false);
-						final String lowPrice = Utils.formatWidgetMoney(ticker
-								.getLow().getAmount().floatValue(),
-								pref_currency, false);
-						final String volume = Utils.formatTwoDecimals(ticker
-								.getVolume().floatValue());
+						String volume = "N/A";
 
-						views.setTextViewText(R.id.widgetExchange, exchange);
+						if (!(ticker.getVolume() == null)) {
+							volume = Utils.formatDecimal(ticker.getVolume()
+									.floatValue(), 2, false);
+						}
+
+						final String highPrice;
+						final String lowPrice;
+
+						if (!(ticker.getHigh() == null)) {
+							highPrice = Utils.formatWidgetMoney(ticker
+									.getHigh().getAmount().floatValue(),
+									pref_currency, false);
+							lowPrice = Utils.formatWidgetMoney(ticker.getLow()
+									.getAmount().floatValue(), pref_currency,
+									false);
+						} else {
+							highPrice = Utils.formatWidgetMoney(ticker.getAsk()
+									.getAmount().floatValue(), pref_currency,
+									false);
+							lowPrice = Utils.formatWidgetMoney(ticker.getBid()
+									.getAmount().floatValue(), pref_currency,
+									false);
+
+						}
+						
+						views.setTextViewText(R.id.widgetExchange, exchangeName);
 						views.setTextViewText(R.id.widgetLowText, lowPrice);
 						views.setTextViewText(R.id.widgetHighText, highPrice);
 						views.setTextViewText(R.id.widgetLastText, lastPrice);
@@ -144,57 +153,56 @@ public class WidgetProvider extends BaseWidgetProvider {
 								+ volume);
 
 						views.setTextViewText(R.id.label, "Refreshed @ "
-								+ currentTime);
+								+ Utils.getCurrentTime());
 						views.setTextColor(R.id.label, Color.GREEN);
 
 						if (pref_DisplayUpdates == true) {
 							createTicker(context, R.drawable.bitcoin, ""
-									+ exchange + " Updated!");
+									+ exchangeName + " Updated!");
 						}
 
-						// if (pref_mtgoxTicker) {
-						// createPermanentNotification(context,
-						// R.drawable.bitcoin, "Bitcoin at "
-						// + lastPrice, "Bitcoin value: "
-						// + lastPrice + " on " + exchange,
-						// NOTIFY_ID);
-						// }
+						if (pref_ticker
+								|| pref_currency.equals(pref_main_currency)) {
+							createPermanentNotification(context,
+									R.drawable.bitcoin,
+									"Bitcoin  " + lastPrice,
+									"Bitcoin value: " + lastPrice + " on "
+											+ exchangeName, NOTIFY_ID + 100);
+						}
+
+						if (!pref_ticker) {
+							removePermanentNotification(context,
+									NOTIFY_ID + 100);
+						}
 
 						if (pref_PriceAlarm) {
+							try {
+								if (pref_currency.equals(pref_main_currency)
+										&& !Utils
+												.isBetween(
+														lastValue,
+														Float.valueOf(pref_notifLimitLower),
+														Float.valueOf(pref_notifLimitUpper))) {
+									createNotification(context, lastPrice,
+											exchangeName, NOTIFY_ID);
 
-							if (exchange.equals("MtGox")
-									&& pref_currency.equals(pref_mtgoxCurrency)
-									&& !pref_mtgoxUpper.equals("")
-									&& !pref_mtgoxLower.equals("")
-									&& !Utils.isBetween(lastValue,
-											Float.valueOf(pref_mtgoxLower),
-											Float.valueOf(pref_mtgoxUpper))
-									) {
-								createNotification(context, lastPrice,
-										exchange, NOTIFY_ID);
-							}
-
-							else if (exchange.equals("VirtEx")
-									&& pref_currency.equals("CAD")
-									&& !pref_virtexLower.equals("")
-									&& !pref_virtexUpper.equals("")
-									&& !Utils.isBetween(lastValue,
-											Float.valueOf(pref_virtexLower),
-											Float.valueOf(pref_virtexUpper))
-								) {
-								createNotification(context, lastPrice,
-										exchange, NOTIFY_ID);
+								}
+							} catch (Exception e) {
+								Toast.makeText(
+										getApplicationContext(),
+										exchangeName
+												+ "notification alarm thresholds are invalid.",
+										Toast.LENGTH_LONG).show();
 							}
 						}
 
 					} catch (Exception e) {
 						e.printStackTrace();
 						if (pref_DisplayUpdates == true) {
-							createTicker(context, R.drawable.bitcoin, exchange
-									+ " Update failed!");
+							createTicker(context, R.drawable.bitcoin,
+									exchangeName + " Update failed!");
 						}
 						views.setTextColor(R.id.label, Color.RED);
-
 					}
 					widgetManager.updateAppWidget(appWidgetId, views);
 				}
