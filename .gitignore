@@ -1,6 +1,2 @@
 bin/
 gen/
-proguard/
-.classpath
-.project
-.settings/

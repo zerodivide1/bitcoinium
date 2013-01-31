@@ -1,108 +1,8 @@
-<<<<<<< HEAD
-<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.veken0m.cavirtex"
-    android:versionCode="19"
-    android:versionName="1.3.1" >
-
-    <uses-sdk
-        android:minSdkVersion="8"
-        android:targetSdkVersion="17" />
-
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.SET_ALARM" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.VIBRATE" />
-
-    <application
-        android:icon="@drawable/bitcoiniumlogo"
-         android:theme="@style/Theme.Sherlock"
-        android:label="@string/app_name" >
-        <receiver
-            android:name="com.veken0m.cavirtex.WatcherWidgetProvider"
-            android:label="VirtEx CAD" >
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_ENABLED" />
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="android.appwidget.action.APPWIDGET_DISABLED" />
-            </intent-filter>
-
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/watcher_appwidget_info" />
-        </receiver>
-
-        <service android:name="com.veken0m.cavirtex.WatcherWidgetProvider$UpdateService" />
-
-        <receiver
-            android:name="com.veken0m.cavirtex.WatcherWidgetProvider2"
-            android:label="MtGox USD" >
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_ENABLED" />
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="android.appwidget.action.APPWIDGET_DISABLED" />
-            </intent-filter>
-
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/watcher_appwidget_info2" />
-        </receiver>
-
-        <service android:name="com.veken0m.cavirtex.WatcherWidgetProvider2$UpdateService2" />
-
-        <activity
-            android:name=".MainActivity"
-            android:configChanges="keyboardHidden|orientation|screenSize"
-            android:label="@string/app_name" >
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        <activity
-            android:name=".Orderbook"
-            android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="Orderbook" >
-        </activity>
-        <activity
-            android:name=".Graph"
-            android:configChanges="orientation|screenSize"
-            android:label="Graph" >
-        </activity>
-        <activity
-            android:name=".MinerStats"
-            android:configChanges="orientation|screenSize"
-            android:label="Miner Stats" >
-        </activity>
-        <activity
-            android:name=".Preferences"
-            android:label="Preferences" >
-        </activity>
-        <activity
-            android:name="com.veken0m.cavirtex.WebViewer"
-            android:configChanges="orientation|keyboard|keyboardHidden|screenSize"
-            android:label="OrderBook" >
-        </activity>
-
-        <!--
-        <activity android:name=".WatcherWidgetConfigure">
-			<intent-filter>
-				<action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
-			</intent-filter>
-		</activity>
-        -->
-        <activity
-            android:name="com.google.ads.AdActivity"
-            android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize" />
-    </application>
-
-=======
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.veken0m.bitcoinium"
-    android:versionCode="21"
-    android:versionName="1.3.2" >
+    android:versionCode="22"
+    android:versionName="1.4.0" >
 
     <uses-sdk
         android:minSdkVersion="8"
@@ -113,6 +13,7 @@
     <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
+        android:allowBackup="true"
         android:icon="@drawable/bitcoiniumlogo"
         android:label="@string/app_name"
         android:theme="@style/Theme.Sherlock" >
@@ -142,7 +43,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.veken0m.bitcoinium.WidgetConfigureActivity" >
+        <activity
+            android:name="com.veken0m.bitcoinium.WidgetConfigureActivity"
+            android:screenOrientation="portrait" >
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
             </intent-filter>
@@ -153,18 +56,19 @@
             android:label="Orderbook" >
         </activity>
         <activity
+            android:name="com.veken0m.bitcoinium.BitcoinChartsActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="Bitcoin Charts" >
+        </activity>
+        <activity
             android:name="com.veken0m.bitcoinium.GraphActivity"
             android:configChanges="orientation|screenSize"
             android:label="Graph" >
         </activity>
-
-        <!--
-            TODO: Uncomment following line and fix orientation change
-            android:configChanges="orientation|screenSize"
-        -->
         <activity
             android:name="com.veken0m.bitcoinium.MinerStatsActivity"
-            android:label="Miner Stats" >
+            android:label="Miner Stats"
+            android:screenOrientation="portrait" >
         </activity>
         <activity
             android:name="com.veken0m.bitcoinium.PreferencesActivity"
@@ -177,5 +81,4 @@
         </activity>
     </application>
 
->>>>>>> origin/develop
 </manifest>

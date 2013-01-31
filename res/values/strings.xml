@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <string name="app_name">Bitcoinium Prime</string>
-    <string name="appwidget_prefix_default">Test</string>
+    <string name="appwidget_prefix_default">MtGoxExchange</string>
     <string name="mtGox">MtGox</string>
     <string name="exchange">Exchange</string>
     <string name="low">Low</string>
@@ -12,10 +13,11 @@
     <string name="widget_button">widgetButton</string>
 
     <!-- Main Menu Button Strings -->
-    <string name="refreshButton">Refresh Widget</string>
+    <string name="refreshButton">Refresh Widget(s)</string>
     <string name="orderbookButton">OrderBook</string>
+    <string name="bitcoinChartsButton">Bitcoin Charts</string>
     <string name="minerstatsButton">Miner Stats</string>
     <string name="graphButton">Display Price Graph</string>
     <string name="exgraphButton">External Orderbook and Graphs</string>
-    
+
 </resources>

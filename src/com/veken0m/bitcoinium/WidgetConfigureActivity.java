@@ -1,16 +1,16 @@
 package com.veken0m.bitcoinium;
 
-import com.veken0m.bitcoinium.R;
-
 import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.ListPreference;
 import android.preference.Preference;
-import android.preference.PreferenceActivity;
-import android.preference.PreferenceManager;
 import android.preference.Preference.OnPreferenceClickListener;
+import android.preference.PreferenceActivity;
+import android.preference.PreferenceGroup;
+import android.preference.PreferenceManager;
 
 public class WidgetConfigureActivity extends PreferenceActivity {
 
@@ -26,11 +26,25 @@ public class WidgetConfigureActivity extends PreferenceActivity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		addPreferencesFromResource(R.xml.widget_preferences);
-
+		addPreferencesFromResource(R.xml.widget_preferences);	
+		
 		// Set the result to CANCELED. This will cause the widget host to cancel
 		// out of the widget placement if they press the back button.
 		setResult(RESULT_CANCELED);
+		
+		// Disable all the currency pickers until exchange is chosen
+		ListPreference widgetExchangePref = (ListPreference) findPreference("widgetExchangesPref");
+		PreferenceGroup widgetPref = (PreferenceGroup) findPreference("widget_currency");
+		((ListPreference) findPreference("mtgoxWidgetCurrencyPref")).setEnabled(false);
+		((ListPreference) findPreference("btceWidgetCurrencyPref")).setEnabled(false);
+		((ListPreference) findPreference("virtexWidgetCurrencyPref")).setEnabled(false);
+		((ListPreference) findPreference("bitstampWidgetCurrencyPref")).setEnabled(false);
+		((ListPreference) findPreference("campbxWidgetCurrencyPref")).setEnabled(false);
+		//((ListPreference) findPreference("bitcoincentralWidgetCurrencyPref")).setEnabled(false);
+		try{
+		((ListPreference) findPreference(widgetExchangePref.getEntry().toString().toLowerCase().replace("exchange", "") + "WidgetCurrencyPref")).setEnabled(true);
+		} catch (Exception e){
+		}
 
 		// Find the widget id from the intent.
 		Intent intent = getIntent();
@@ -47,25 +61,50 @@ public class WidgetConfigureActivity extends PreferenceActivity {
 
 		final SharedPreferences prefs = PreferenceManager
 				.getDefaultSharedPreferences(getBaseContext());
-
-		Preference OKpref = (Preference) findPreference("OKpref");
+			
+	    Preference OKpref = (Preference) findPreference("OKpref");
+	    
+	    widgetExchangePref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+            	// Only enable the currency preference of the selected exchange
+        		((ListPreference) findPreference("mtgoxWidgetCurrencyPref")).setEnabled(false);
+        		((ListPreference) findPreference("btceWidgetCurrencyPref")).setEnabled(false);
+        		((ListPreference) findPreference("virtexWidgetCurrencyPref")).setEnabled(false);
+        		((ListPreference) findPreference("bitstampWidgetCurrencyPref")).setEnabled(false);
+        		((ListPreference) findPreference("campbxWidgetCurrencyPref")).setEnabled(false);
+        		//((ListPreference) findPreference("bitcoincentralWidgetCurrencyPref")).setEnabled(false);
+        		((ListPreference) findPreference(newValue.toString().toLowerCase().replace("exchange", "") + "WidgetCurrencyPref")).setEnabled(true);		
+            	
+                return true;
+            }
+	    }
+	    		);
 
 		OKpref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
 
 			public boolean onPreferenceClick(Preference preference) {
 				final Context context = WidgetConfigureActivity.this;
+				
+				String pref_widgetExchange = prefs.getString(
+						"widgetExchangesPref", "MtGoxExchange");
+				
+				Exchange exchange = new Exchange(getResources().getStringArray(
+						getResources().getIdentifier(pref_widgetExchange, "array",
+								getBaseContext().getPackageName())));
+
+				String defaultCurrency = exchange.getMainCurrency();
+				String prefix = exchange.getPrefix();
 
 				String pref_widgetCurrency = prefs.getString(
-						"mtgoxWidgetCurrencyPref", "USD");
-
-				String pref_widgetExchange = prefs.getString(
-						"widgetExchangesPref", "mtgox");
+						prefix + "WidgetCurrencyPref", defaultCurrency);
 
 				// When the button is clicked, save the string in our prefs and
 				// return that they clicked OK.
 				saveCurrencyPref(context, mAppWidgetId, pref_widgetCurrency);
-				saveExchangePref(context, mAppWidgetId, pref_widgetExchange);
 
+				saveExchangePref(context, mAppWidgetId, pref_widgetExchange);
+				
 				// Set alarm to refresh widget at specified interval
 				BaseWidgetProvider.setAlarm(context);
 
