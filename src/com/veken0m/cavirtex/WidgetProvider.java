@@ -6,10 +6,7 @@ import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.graphics.Color;
-import android.preference.PreferenceManager;
 import android.widget.RemoteViews;
 import android.widget.Toast;
 

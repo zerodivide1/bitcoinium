@@ -99,12 +99,11 @@ public class WidgetConfigureActivity extends PreferenceActivity {
 					// If preference is not set a valid integer set to "MtGoxExchange"
 					SharedPreferences prefs = PreferenceManager
 							.getDefaultSharedPreferences(getBaseContext());
-
 							Editor editor = prefs.edit();
 							editor.putString("widgetExchangesPref", "MtGoxExchange");
 							editor.commit();
 					exchange = new Exchange(getResources().getStringArray(
-							getResources().getIdentifier(pref_widgetExchange, "array",
+							getResources().getIdentifier("MtGoxExchange", "array",
 									getBaseContext().getPackageName())));
 				}
 
