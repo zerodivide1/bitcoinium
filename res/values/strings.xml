@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+<<<<<<< HEAD
     <string name="app_name">Bitcoinium</string>
     <string name="appwidget_prefix_default">MtGoxExchange</string>
+=======
+    <string name="app_name">Bitcoinium Prime</string>
+    <string name="default_exchange">MtGoxExchange</string>
+    <string name="default_currency">USD</string>
+>>>>>>> 42af7df... old widget fix
     <string name="mtGox">MtGox</string>
     <string name="exchange">Exchange</string>
     <string name="low">Low</string>

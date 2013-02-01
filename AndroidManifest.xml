@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
 <<<<<<< HEAD
+<<<<<<< HEAD
     package="com.veken0m.cavirtex"
     android:versionCode="22"
+=======
+    package="com.veken0m.bitcoinium"
+    android:versionCode="23"
+>>>>>>> 42af7df... old widget fix
     android:versionName="1.4.0" >
 =======
     package="com.veken0m.bitcoinium"
