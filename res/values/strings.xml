@@ -2,7 +2,6 @@
 <resources>
 
     <string name="app_name">Bitcoinium</string>
-    <string name="app_name">Bitcoinium Prime</string>
     <string name="default_exchange">MtGoxExchange</string>
     <string name="default_currency">USD</string>
     <string name="mtGox">MtGox</string>
