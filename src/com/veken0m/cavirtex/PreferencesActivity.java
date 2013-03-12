@@ -2,6 +2,7 @@ package com.veken0m.cavirtex;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.Preference;
@@ -16,10 +17,23 @@ public class PreferencesActivity extends PreferenceActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		addPreferencesFromResource(R.xml.preferences);
-
+		
+		Preference primepref = (Preference) findPreference("primepref");
+		primepref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
+			public boolean onPreferenceClick(Preference preference) {
+		        Intent intent = new Intent(Intent.ACTION_VIEW);
+		        intent.setData(Uri
+		            .parse("market://details?id=com.veken0m.bitcoinium"));
+		        startActivity(intent);
+		        return true;
+		      }
+		    });
+		
 		Preference devEmailPref = (Preference) findPreference("devEmailPref");
 		devEmailPref
 				.setOnPreferenceClickListener(new OnPreferenceClickListener() {
+					
+					Resources res = getResources();
 
 					public boolean onPreferenceClick(Preference preference) {
 						Intent i = new Intent(Intent.ACTION_SEND);
@@ -27,7 +41,7 @@ public class PreferencesActivity extends PreferenceActivity {
 						i.putExtra(android.content.Intent.EXTRA_EMAIL,
 								new String[] { "veken0m.apps@gmail.com" });
 						i.putExtra(android.content.Intent.EXTRA_SUBJECT,
-								"Bitcoinium Feedback");
+								res.getString(R.string.app_name) +  " Feedback");
 						startActivity(Intent.createChooser(i, "Send email"));
 
 						return true;

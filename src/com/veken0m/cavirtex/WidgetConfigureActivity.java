@@ -41,7 +41,9 @@ public class WidgetConfigureActivity extends PreferenceActivity {
 		((ListPreference) findPreference("virtexWidgetCurrencyPref")).setEnabled(false);
 		((ListPreference) findPreference("bitstampWidgetCurrencyPref")).setEnabled(false);
 		((ListPreference) findPreference("campbxWidgetCurrencyPref")).setEnabled(false);
-		//((ListPreference) findPreference("bitcoincentralWidgetCurrencyPref")).setEnabled(false);
+		((ListPreference) findPreference("bitcoincentralWidgetCurrencyPref")).setEnabled(false);
+		((ListPreference) findPreference("bitfloorWidgetCurrencyPref")).setEnabled(false);
+		((ListPreference) findPreference("bitcoin24WidgetCurrencyPref")).setEnabled(false);
 		try{
 		((ListPreference) findPreference(widgetExchangePref.getEntry().toString().toLowerCase().replace("exchange", "") + "WidgetCurrencyPref")).setEnabled(true);
 		} catch (Exception e){
@@ -74,7 +76,9 @@ public class WidgetConfigureActivity extends PreferenceActivity {
         		((ListPreference) findPreference("virtexWidgetCurrencyPref")).setEnabled(false);
         		((ListPreference) findPreference("bitstampWidgetCurrencyPref")).setEnabled(false);
         		((ListPreference) findPreference("campbxWidgetCurrencyPref")).setEnabled(false);
-        		//((ListPreference) findPreference("bitcoincentralWidgetCurrencyPref")).setEnabled(false);
+        		((ListPreference) findPreference("bitcoincentralWidgetCurrencyPref")).setEnabled(false);
+        		((ListPreference) findPreference("bitfloorWidgetCurrencyPref")).setEnabled(false);
+        		((ListPreference) findPreference("bitcoin24WidgetCurrencyPref")).setEnabled(false);
         		((ListPreference) findPreference(newValue.toString().toLowerCase().replace("exchange", "") + "WidgetCurrencyPref")).setEnabled(true);		
             	
                 return true;
@@ -99,11 +103,12 @@ public class WidgetConfigureActivity extends PreferenceActivity {
 					// If preference is not set a valid integer set to "MtGoxExchange"
 					SharedPreferences prefs = PreferenceManager
 							.getDefaultSharedPreferences(getBaseContext());
+
 							Editor editor = prefs.edit();
 							editor.putString("widgetExchangesPref", "MtGoxExchange");
 							editor.commit();
 					exchange = new Exchange(getResources().getStringArray(
-							getResources().getIdentifier("MtGoxExchange", "array",
+							getResources().getIdentifier(pref_widgetExchange, "array",
 									getBaseContext().getPackageName())));
 				}
 

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:ads="http://schemas.android.com/apk/lib/com.google.ads"
     android:id="@+id/orderbooklayout"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
@@ -10,19 +11,19 @@
     <TableRow>
 
         <TextView
+            android:layout_weight="1"
             android:background="#101010"
             android:gravity="center_horizontal"
             android:padding="3dip"
-            android:layout_weight="1"
             android:text="Bids"
             android:textColor="#33B5E5"
             android:textSize="22sp" />
 
         <TextView
+            android:layout_weight="1"
             android:background="#101010"
             android:gravity="center_horizontal"
             android:padding="3dip"
-            android:layout_weight="1"
             android:text="Asks"
             android:textColor="#33B5E5"
             android:textSize="22sp" />
@@ -32,7 +33,6 @@
 
         <TextView
             android:layout_height="fill_parent"
-            android:layout_weight="1"
             android:background="#101010"
             android:gravity="center_horizontal"
             android:text="Price"
@@ -72,15 +72,25 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="2dp"
-        android:layout_marginRight="2dp" >
+        android:layout_marginRight="2dp"
+        android:layout_weight="1" >
 
         <TableLayout
-            xmlns:android="http://schemas.android.com/apk/res/android"
             android:id="@+id/orderlist"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
             android:stretchColumns="4" >
         </TableLayout>
     </ScrollView>
+
+    <com.google.ads.AdView
+        android:id="@+id/adView"
+        android:layout_width="fill_parent"
+        android:layout_height="50dip"
+        ads:adSize="BANNER"
+        ads:adUnitId="a14fe62988ba245"
+        ads:loadAdOnCreate="true"
+        ads:testDevices="TEST_EMULATOR, TEST_DEVICE_ID"
+        android:gravity="bottom|center_horizontal" />
 
 </TableLayout>

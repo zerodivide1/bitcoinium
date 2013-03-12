@@ -52,13 +52,27 @@
                     android:key="campbxWidgetCurrencyPref"
                     android:summary="CampBX Widget price will be displayed in selected currency"
                     android:title="CampBX Widget Currency" />
-                <!--  <ListPreference
+                <ListPreference
                     android:defaultValue="EUR"
                     android:entries="@array/bitcoincentralcurrencies"
                     android:entryValues="@array/bitcoincentralcurrenciesvalues"
                     android:key="bitcoincentralWidgetCurrencyPref"
                     android:summary="BitcoinCentral Widget price will be displayed in selected currency"
-                    android:title="BitcoinCentral Widget Currency" /> -->
+                    android:title="BitcoinCentral Widget Currency" />
+                <ListPreference
+                    android:defaultValue="USD"
+                    android:entries="@array/bitfloorcurrencies"
+                    android:entryValues="@array/bitfloorcurrenciesvalues"
+                    android:key="bitfloorWidgetCurrencyPref"
+                    android:summary="Bitfloor Widget price will be displayed in selected currency"
+                    android:title="Bitfloor Widget Currency" />
+                <ListPreference
+                    android:defaultValue="EUR"
+                    android:entries="@array/bitcoin24currencies"
+                    android:entryValues="@array/bitcoin24currenciesvalues"
+                    android:key="bitcoin24WidgetCurrencyPref"
+                    android:summary="Bitcoin-24 Widget price will be displayed in selected currency"
+                    android:title="Bitcoin-24 Widget Currency" />
             </PreferenceCategory>
         </PreferenceScreen>
     </PreferenceCategory>
@@ -72,6 +86,16 @@
                     android:key="checkboxPref"
                     android:summary="Display update notification in taskbar"
                     android:title="Display Updates" />
+                <CheckBoxPreference
+                    android:defaultValue="false"
+                    android:key="bidasktogglePref"
+                    android:summary="Replace High/Low with Bid/Ask on widget if supported by exchange"
+                    android:title="Bid/Ask on Widget" />
+                <CheckBoxPreference
+                    android:defaultValue="false"
+                    android:key="wifiRefreshOnlyPref"
+                    android:summary="Widgets will only refresh when WiFi is connected"
+                    android:title="Only refresh on WiFi" />
             </PreferenceCategory>
             <PreferenceCategory android:title="Power Saving" >
                 <Preference android:summary="Widget(s) will need to be replaced for new power settings to take effect" />

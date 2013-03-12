@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:ads="http://schemas.android.com/apk/lib/com.google.ads"
     android:id="@+id/minerStatslayout"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
@@ -13,12 +14,30 @@
         android:layout_marginRight="2dp" >
 
         <LinearLayout
-            xmlns:android="http://schemas.android.com/apk/res/android"
             android:id="@+id/table_fragment"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical" >
         </LinearLayout>
     </ScrollView>
+
+    <LinearLayout
+        android:id="@+id/miner_difficulty"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_gravity="bottom"
+        android:orientation="vertical" >
+    </LinearLayout>
+    
+            <com.google.ads.AdView
+            android:id="@+id/adView"
+            android:layout_width="fill_parent"
+            android:layout_height="50dip"
+            ads:adSize="BANNER"
+            ads:adUnitId="a14fe62988ba245"
+            ads:loadAdOnCreate="true"
+            ads:testDevices="TEST_EMULATOR, TEST_DEVICE_ID"
+            android:gravity="bottom|center_horizontal" />
 
 </TableLayout>
