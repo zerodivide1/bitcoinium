@@ -45,7 +45,7 @@ public class GraphActivity extends SherlockActivity {
 	LineGraphView graphView;
 	static Boolean pref_graphMode;
 	static Boolean pref_scaleMode;
-	static int pref_windowSize;
+	static Boolean pref_fastMode;
 
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -68,7 +68,7 @@ public class GraphActivity extends SherlockActivity {
 		String prefix = exchange.getPrefix();
 
 		readPreferences(getApplicationContext(), prefix, defaultCurrency);
-		
+
 		if (exchange.supportsPriceGraph()) {
 			setContentView(R.layout.graph);
 			viewGraph();
@@ -134,13 +134,26 @@ public class GraphActivity extends SherlockActivity {
 	private void generatePreviousPriceGraph() {
 
 		g_graphView = null;
-
+		String graphExchange = xchangeExchange;
+		Trades trades;
+		
+		if(pref_fastMode == false){
+			// Use API V1 instead of V0 for MtGox Trades
+			graphExchange = xchangeExchange.replace("0", "1");
+		}
 		try {
-			final Trades trades = ExchangeFactory.INSTANCE
-					.createExchange(xchangeExchange.replace("0", "1")) // Use API V1 instead of V0 for MtGox Trades
+			trades = ExchangeFactory.INSTANCE
+					.createExchange(graphExchange)
 					.getPollingMarketDataService()
 					.getTrades(Currencies.BTC, pref_currency);
+		} catch (OutOfMemoryError E) {
+			// If trades too large fetch API V0 trades (much more compact)
+			trades = ExchangeFactory.INSTANCE.createExchange(xchangeExchange)
+					.getPollingMarketDataService()
+					.getTrades(Currencies.BTC, pref_currency);
+		}
 
+		try {
 			List<Trade> tradesList = trades.getTrades();
 
 			float[] values = new float[tradesList.size()];
@@ -205,8 +218,7 @@ public class GraphActivity extends SherlockActivity {
 					}
 				};
 
-				double windowSize;
-				windowSize = pref_windowSize * 3600000;
+				double windowSize = (dates[dates.length - 1] - dates[0])/2;
 				// startValue enables graph window to be aligned with latest
 				// trades
 				final double startValue = dates[dates.length - 1] - windowSize;
@@ -214,7 +226,7 @@ public class GraphActivity extends SherlockActivity {
 				graphView.setViewPort(startValue, windowSize);
 				graphView.setScrollable(true);
 				graphView.setScalable(true);
-				
+
 				if (!pref_scaleMode) {
 					graphView.setManualYAxisBounds(largest, smallest);
 				}
@@ -283,10 +295,10 @@ public class GraphActivity extends SherlockActivity {
 
 		pref_graphMode = prefs.getBoolean("graphmodePref", false);
 		pref_scaleMode = prefs.getBoolean("graphscalePref", false);
-		pref_windowSize = Integer.parseInt(prefs.getString(prefix
-				+ "WindowSize", "12"));
 		pref_currency = prefs.getString(prefix + "CurrencyPref",
 				defaultCurrency);
+		pref_fastMode = prefs.getBoolean("mtgoxapiv0Pref",
+				false);
 	}
 
 }

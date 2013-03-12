@@ -1,12 +1,17 @@
 package com.veken0m.bitcoinium;
 
+import java.io.InputStreamReader;
 import java.util.List;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -19,16 +24,16 @@ import android.view.ViewGroup;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.actionbarsherlock.app.SherlockFragment;
-import com.veken0m.bitcoinium.MinerStatsActivity.MinerData;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.veken0m.miningpools.deepbit.DeepBitData;
 import com.veken0m.miningpools.deepbit.Worker;
 
 public class DeepBitFragment extends SherlockFragment {
 
 	protected static String pref_deepbitKey = "";
-	protected static MinerData minerdata = new MinerData();
+	protected static DeepBitData data;
 	protected Boolean connectionFail = false;
 	private ProgressDialog minerProgressDialog;
 	final Handler mMinerHandler = new Handler();
@@ -42,20 +47,6 @@ public class DeepBitFragment extends SherlockFragment {
 		super.onCreate(savedInstanceState);
 		readPreferences(getActivity());
 
-		if (pref_deepbitKey.equalsIgnoreCase("")) {
-
-			int duration = Toast.LENGTH_LONG;
-			CharSequence text = "Please enter your DeepBit API Token to use MinerStatsActivity with DeepBit";
-
-			Toast toast = Toast.makeText(getActivity(), text, duration);
-			toast.setGravity(Gravity.CENTER, 0, 0);
-			toast.show();
-
-			Intent settingsActivity = new Intent(
-					getActivity().getBaseContext(), PreferencesActivity.class);
-			startActivity(settingsActivity);
-		}
-
 		View view = inflater.inflate(R.layout.table_fragment, container, false);
 		viewMinerStats(view);
 		return view;
@@ -64,15 +55,18 @@ public class DeepBitFragment extends SherlockFragment {
 	public void getMinerStats(Context context) {
 
 		try {
-			minerdata.setDeepbitData(pref_deepbitKey);
+			HttpClient client = new DefaultHttpClient();
+
+			HttpGet post = new HttpGet("http://deepbit.net/api/"
+					+ pref_deepbitKey);
+			HttpResponse response = client.execute(post);
+			ObjectMapper mapper = new ObjectMapper();
+			data = mapper.readValue(new InputStreamReader(response.getEntity()
+					.getContent(), "UTF-8"), DeepBitData.class);
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			connectionFail = true;
-		}
-		try {
-			minerdata.setDifficulty();
-		} catch (Exception e) {
-			e.printStackTrace();
 		}
 
 	}
@@ -82,7 +76,7 @@ public class DeepBitFragment extends SherlockFragment {
 			return;
 		}
 		minerProgressDialog = ProgressDialog.show(view.getContext(),
-				"Working...", "Retrieving Miner Stats", true, true);
+				"Working...", "Retrieving Miner Stats", true, false);
 
 		MinerStatsThread gt = new MinerStatsThread();
 		gt.start();
@@ -124,7 +118,6 @@ public class DeepBitFragment extends SherlockFragment {
 
 			AlertDialog alert = builder.create();
 			alert.show();
-		} else {
 		}
 	}
 
@@ -138,70 +131,38 @@ public class DeepBitFragment extends SherlockFragment {
 			TableRow tr1 = new TableRow(getActivity());
 			TableRow tr2 = new TableRow(getActivity());
 			TableRow tr3 = new TableRow(getActivity());
-			TableRow tr4 = new TableRow(getActivity());
-			TableRow tr5 = new TableRow(getActivity());
-			TableRow tr6 = new TableRow(getActivity());
-			TableRow tr7 = new TableRow(getActivity());
-			TableRow tr9 = new TableRow(getActivity());
 
-			TextView tvExchangeName = new TextView(getActivity());
 			TextView tvBTCRewards = new TextView(getActivity());
 			TextView tvBTCPayout = new TextView(getActivity());
-			TextView tvCurrentDifficulty = new TextView(getActivity());
-			TextView tvNextDifficulty = new TextView(getActivity());
 			TextView tvHashrate = new TextView(getActivity());
-
 			tr1.setGravity(Gravity.CENTER_HORIZONTAL);
 			tr2.setGravity(Gravity.CENTER_HORIZONTAL);
-			tr4.setGravity(Gravity.CENTER_HORIZONTAL);
-			tr5.setGravity(Gravity.CENTER_HORIZONTAL);
-			tr6.setGravity(Gravity.CENTER_HORIZONTAL);
-			tr7.setGravity(Gravity.CENTER_HORIZONTAL);
-			tr9.setGravity(Gravity.CENTER_HORIZONTAL);
-			tvBTCRewards.setText("Reward: " + minerdata.getRewardsBTC()
-					+ " BTC");
-			tvBTCPayout.setText("Total Payout: " + minerdata.getPayout()
-					+ " BTC");
-			tvHashrate.setText("Total Hashrate: " + minerdata.getHashrate()
-					+ " MH/s");
+			tr3.setGravity(Gravity.CENTER_HORIZONTAL);
 
-			tr1.addView(tvExchangeName);
-			tr2.addView(tvBTCRewards);
-			tr4.addView(tvBTCPayout);
-			tr9.addView(tvHashrate);
+			String RewardsBTC = "Reward: "
+					+ data.getConfirmed_reward().floatValue() + "BTC";
+			String TotalHashrate = "Total Hashrate: "
+					+ data.getHashrate().floatValue() + " MH/s";
+			String TotalPayout = "Total Payout: "
+					+ data.getPayout_history().floatValue() + "BTC";
 
+			tvBTCRewards.setText(RewardsBTC);
+			tvBTCPayout.setText(TotalPayout);
+			tvHashrate.setText(TotalHashrate);
+
+			tr1.addView(tvBTCRewards);
+			tr2.addView(tvBTCPayout);
+			tr3.addView(tvHashrate);
+
+			t1.addView(tr1);
 			t1.addView(tr2);
 			t1.addView(tr3);
-			t1.addView(tr4);
-			t1.addView(tr9);
-			t1.addView(tr1);
-
-			tvCurrentDifficulty.setText("Current Difficulty: "
-					+ Utils.formatDecimal(Float.valueOf(minerdata
-							.getCurrentDifficulty()), 0, true));
-			tvNextDifficulty.setText("Estimated Next Difficulty: "
-					+ Utils.formatDecimal(Float.valueOf(minerdata
-							.getNextDifficulty()), 0, true) + "\n");
-
-			if (Float.valueOf(minerdata.getNextDifficulty()) < Float
-					.valueOf(minerdata.getCurrentDifficulty())) {
-				tvNextDifficulty.setTextColor(Color.GREEN);
-			} else {
-				tvNextDifficulty.setTextColor(Color.RED);
-			}
-
-			tr5.addView(tvCurrentDifficulty);
-			tr6.addView(tvNextDifficulty);
-
-			t1.addView(tr5);
-			t1.addView(tr6);
 
 			// End of Non-worker data
-
-			List<Worker> worker = minerdata.getWorkers();
-
-			for (int i = 0; i < worker.size(); i++) {
-				TableRow tr8 = new TableRow(getActivity());
+			List<Worker> Workers = data.getWorkers().getWorkers();
+			List<String> WorkerNames = data.getWorkers().getNames();
+			for (int i = 0; i < Workers.size(); i++) {
+				TableRow tr9 = new TableRow(getActivity());
 				TableRow tr10 = new TableRow(getActivity());
 				TableRow tr11 = new TableRow(getActivity());
 				TableRow tr12 = new TableRow(getActivity());
@@ -211,36 +172,34 @@ public class DeepBitFragment extends SherlockFragment {
 				TextView tvShares = new TextView(getActivity());
 				TextView tvStales = new TextView(getActivity());
 
-				tr8.setGravity(Gravity.CENTER_HORIZONTAL);
+				tr9.setGravity(Gravity.CENTER_HORIZONTAL);
 				tr10.setGravity(Gravity.CENTER_HORIZONTAL);
 				tr11.setGravity(Gravity.CENTER_HORIZONTAL);
 				tr12.setGravity(Gravity.CENTER_HORIZONTAL);
 
-				tvMinerName.setText("Miner: "
-						+ minerdata.getWorkersNames().get(i));
-				tvAlive.setText("Alive: " + worker.get(i).getAlive());
-				tvShares.setText("Shares: " + worker.get(i).getShares());
-				tvStales.setText("Stales: " + worker.get(i).getStales() + "\n");
+				tvMinerName.setText("\nMiner: " + WorkerNames.get(i));
+				tvAlive.setText("Alive: " + Workers.get(i).getAlive());
+				tvShares.setText("Shares: " + Workers.get(i).getShares());
+				tvStales.setText("Stales: " + Workers.get(i).getStales());
 
-				if (minerdata.getAlive().equalsIgnoreCase("true")) {
+				if (Workers.get(i).getAlive()) {
 					tvMinerName.setTextColor(Color.GREEN);
 				} else {
 					tvMinerName.setTextColor(Color.RED);
 				}
 
-				tr8.addView(tvMinerName);
+				tr9.addView(tvMinerName);
 				tr10.addView(tvAlive);
 				tr11.addView(tvShares);
 				tr12.addView(tvStales);
 
-				t1.addView(tr8);
+				t1.addView(tr9);
 				t1.addView(tr10);
 				t1.addView(tr11);
 				t1.addView(tr12);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-
 		}
 	}
 

@@ -1,27 +1,27 @@
 package com.veken0m.bitcoinium;
 
 import java.io.BufferedReader;
-import java.io.EOFException;
-import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.codehaus.jackson.map.ObjectMapper;
 
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.graphics.Color;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentTransaction;
+import android.view.Gravity;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.ActionBar.Tab;
@@ -30,53 +30,86 @@ import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
-import com.veken0m.miningpools.bitminter.BitMinterData;
-import com.veken0m.miningpools.bitminter.Workers;
-import com.veken0m.miningpools.deepbit.DeepBitData;
 
 public class MinerStatsActivity extends SherlockFragmentActivity {
 
 	static String pref_favPool;
+	private static String pref_emcKey;
+	private static String pref_slushKey;
+	private static String pref_bitminterKey;
+	private static String pref_deepbitKey;
+	private static String pref_50BTCKey;
 
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		// ActionBar gets initiated
+		// ActionBar gets initiated and set to tabbed mode
 		ActionBar actionbar = getSupportActionBar();
-		// Tell the ActionBar we want to use Tabs.
 		actionbar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-		ActionBar.Tab BitMinterTab = actionbar.newTab().setText("BitMinter");
-		ActionBar.Tab DeepBitTab = actionbar.newTab().setText("DeepBit");
 
-		// create the two fragments we want to use for display content
-		SherlockFragment BitMinterFragment = new BitMinterFragment();
-		SherlockFragment DeepBitFragment = new DeepBitFragment();
-
-		// set the Tab listener. Now we can listen for clicks.
-		BitMinterTab.setTabListener(new MyTabsListener(BitMinterFragment));
-		DeepBitTab.setTabListener(new MyTabsListener(DeepBitFragment));
+		// Add the pools that have API keys
 		readPreferences(getApplicationContext());
-		// add the two tabs to the actionbar
-		if (pref_favPool.equalsIgnoreCase("BitMinter")) {
+
+		if (pref_bitminterKey.length() <= 6 && pref_emcKey.length() <= 6
+				&& pref_deepbitKey.length() <= 6 && pref_50BTCKey.length() <= 6
+				&& pref_slushKey.length() <= 6) {
+
+			int duration = Toast.LENGTH_LONG;
+			CharSequence text = "Please enter at least one API Token to use Miner Stats";
+
+			Toast toast = Toast.makeText(getApplicationContext(), text,
+					duration);
+			toast.setGravity(Gravity.CENTER, 0, 0);
+			toast.show();
+
+			Intent settingsActivity = new Intent(getApplicationContext(),
+					PreferencesActivity.class);
+			startActivity(settingsActivity);
+		}
+
+		if (pref_bitminterKey.length() > 6) {
+			SherlockFragment BitMinterFragment = new BitMinterFragment();
+			ActionBar.Tab BitMinterTab = actionbar.newTab()
+					.setText("BitMinter");
+			BitMinterTab.setTabListener(new MyTabsListener(BitMinterFragment));
 			actionbar.addTab(BitMinterTab);
+		}
+		if (pref_deepbitKey.length() > 6) {
+			SherlockFragment DeepBitFragment = new DeepBitFragment();
+			ActionBar.Tab DeepBitTab = actionbar.newTab().setText("DeepBit");
+			DeepBitTab.setTabListener(new MyTabsListener(DeepBitFragment));
 			actionbar.addTab(DeepBitTab);
-		} else {
-			actionbar.addTab(DeepBitTab);
-			actionbar.addTab(BitMinterTab);
+		}
+		if (pref_slushKey.length() > 6) {
+			SherlockFragment SlushFragment = new SlushFragment();
+			ActionBar.Tab SlushTab = actionbar.newTab().setText("Slush");
+			SlushTab.setTabListener(new MyTabsListener(SlushFragment));
+			actionbar.addTab(SlushTab);
+		}
+		if (pref_emcKey.length() > 6) {
+			SherlockFragment EMCFragment = new EMCFragment();
+			ActionBar.Tab EMCTab = actionbar.newTab().setText("EclipseMC");
+			EMCTab.setTabListener(new MyTabsListener(EMCFragment));
+			actionbar.addTab(EMCTab);
+		}
+		if (pref_50BTCKey.length() > 6) {
+			SherlockFragment FiftyBTCFragment = new FiftyBTCFragment();
+			ActionBar.Tab FiftyBTCTab = actionbar.newTab().setText("50BTC");
+			FiftyBTCTab.setTabListener(new MyTabsListener(FiftyBTCFragment));
+			actionbar.addTab(FiftyBTCTab);
 		}
 
 		setContentView(R.layout.minerstats);
+		new getDifficultyAsync().execute();
 		actionbar.show();
 	}
-	
+
 	@Override
 	public void onConfigurationChanged(Configuration newConfig) {
 		super.onConfigurationChanged(newConfig);
-				setContentView(R.layout.minerstats);
-
-		
+		setContentView(R.layout.minerstats);
 	}
 
 	class MyTabsListener implements ActionBar.TabListener {
@@ -88,7 +121,7 @@ public class MinerStatsActivity extends SherlockFragmentActivity {
 
 		@Override
 		public void onTabReselected(Tab tab, FragmentTransaction ft) {
-			ft.replace(R.id.table_fragment, fragment);
+			// ft.replace(R.id.table_fragment, fragment);
 		}
 
 		@Override
@@ -103,9 +136,6 @@ public class MinerStatsActivity extends SherlockFragmentActivity {
 
 	}
 
-	static MinerData minerdata = new MinerData();
-
-	final protected static String notAvailable = "N/A";
 	final Handler mMinerHandler = new Handler();
 	protected Boolean connectionFail = false;
 
@@ -116,11 +146,6 @@ public class MinerStatsActivity extends SherlockFragmentActivity {
 		return true;
 	}
 
-	public boolean onPrepareOptionsMenu(Menu menu) {
-		// preparation code here
-		return super.onPrepareOptionsMenu(menu);
-	}
-
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		if (item.getItemId() == R.id.preferences) {
@@ -129,161 +154,76 @@ public class MinerStatsActivity extends SherlockFragmentActivity {
 		return super.onOptionsItemSelected(item);
 	}
 
-	public static class MinerData {
-		private String RewardsNMC = "";
-		private String RewardsBTC = "";
-		private String Hashrate = "";
-		private String Payout = "";
-		private String Alive = "";
-		private String Shares = "";
-		private String Stales = "";
-		private String Name = "";
-		private String CurrentDifficulty = "";
-		private String NextDifficulty = "";
-		private List Workers = new ArrayList();
-		private List WorkerNames = new ArrayList();
+	private class getDifficultyAsync extends AsyncTask<Boolean, Void, Boolean> {
 
-		public String getHashrate() {
-			return this.Hashrate;
+		String CurrentDifficulty = "";
+		String NextDifficulty = "";
+
+		protected Boolean doInBackground(Boolean... params) {
+
+			try {
+				HttpClient client = new DefaultHttpClient();
+				HttpGet post = new HttpGet(
+						"http://blockexplorer.com/q/getdifficulty");
+				HttpResponse response;
+				response = client.execute(post);
+				BufferedReader reader = new BufferedReader(
+						new InputStreamReader(
+								response.getEntity().getContent(), "UTF-8"));
+				CurrentDifficulty = reader.readLine();
+				reader.close();
+				post = new HttpGet("http://blockexplorer.com/q/estimate");
+				response = client.execute(post);
+				reader = new BufferedReader(new InputStreamReader(response
+						.getEntity().getContent(), "UTF-8"));
+				NextDifficulty = reader.readLine();
+				reader.close();
+				return true;
+			} catch (Exception e) {
+				e.printStackTrace();
+				return false;
+			}
 		}
 
-		public String getRewardsNMC() {
-			return this.RewardsNMC;
-		}
+		protected void onPostExecute(Boolean result) {
+			if (result) {
+				LinearLayout view = (LinearLayout) findViewById(R.id.miner_difficulty);
 
-		public String getRewardsBTC() {
-			return this.RewardsBTC;
-		}
+				TextView tvCurrentDifficulty = new TextView(getBaseContext());
+				TextView tvNextDifficulty = new TextView(getBaseContext());
 
-		public String getPayout() {
-			return this.Payout;
-		}
+				tvCurrentDifficulty.setText("\nCurrent Difficulty: "
+						+ Utils.formatDecimal(Float.valueOf(CurrentDifficulty),
+								0, true));
+				tvCurrentDifficulty.setGravity(Gravity.CENTER_HORIZONTAL);
+				tvNextDifficulty.setText("Estimated Next Difficulty: "
+						+ Utils.formatDecimal(Float.valueOf(NextDifficulty), 0,
+								true) + "\n");
+				tvNextDifficulty.setGravity(Gravity.CENTER_HORIZONTAL);
 
-		public String getAlive() {
-			return this.Alive;
-		}
+				if (Float.valueOf(NextDifficulty) < Float
+						.valueOf(CurrentDifficulty)) {
+					tvNextDifficulty.setTextColor(Color.GREEN);
+				} else {
+					tvNextDifficulty.setTextColor(Color.RED);
+				}
 
-		public String getShares() {
-			return this.Shares;
-		}
-
-		public String getStales() {
-			return this.Stales;
-		}
-
-		public String getName() {
-			return this.Name;
-		}
-
-		public String getNextDifficulty() {
-			return this.NextDifficulty;
-		}
-
-		public String getCurrentDifficulty() {
-			return this.CurrentDifficulty;
-		}
-
-		public List getWorkers() {
-			return this.Workers;
-		}
-
-		public List getWorkersNames() {
-			return this.WorkerNames;
-		}
-
-		public void setDeepbitData(String APIToken)
-				throws ClientProtocolException, IOException, EOFException {
-
-			HttpClient client = new DefaultHttpClient();
-
-			HttpGet post = new HttpGet("http://deepbit.net/api/" + APIToken);
-			HttpResponse response = client.execute(post);
-			ObjectMapper mapper = new ObjectMapper();
-			DeepBitData data = mapper.readValue(new InputStreamReader(response
-					.getEntity().getContent(), "UTF-8"), DeepBitData.class);
-
-			this.RewardsBTC = "" + data.getConfirmed_reward().floatValue();
-			this.Hashrate = "" + data.getHashrate().floatValue();
-			this.RewardsNMC = notAvailable;
-			this.Payout = "" + data.getPayout_history().floatValue();
-			this.Alive = "" + data.getWorkers().getWorker(0).getAlive();
-			this.Shares = "" + data.getWorkers().getWorker(0).getShares();
-			this.Stales = "" + data.getWorkers().getWorker(0).getStales();
-			this.Workers = data.getWorkers().getWorkers();
-			this.WorkerNames = data.getWorkers().getNames();
-
-		}
-
-		public void setBitMinterData(String APIToken)
-				throws ClientProtocolException, IOException, EOFException {
-
-			HttpClient client = new DefaultHttpClient();
-
-			// pref_bitminterKey = "M3IIJ5OCN2SQKRGRYVIXUFCJGG44DPNJ"; //Test
-			// Key
-
-			HttpGet post = new HttpGet("https://bitminter.com/api/users"
-					+ "?key=" + APIToken);
-			HttpResponse response = client.execute(post);
-
-			ObjectMapper mapper = new ObjectMapper();
-			BitMinterData data = mapper.readValue(new InputStreamReader(
-					response.getEntity().getContent(), "UTF-8"),
-					BitMinterData.class);
-
-			List<Workers> workers = data.getWorkers();
-
-			this.RewardsBTC = "" + data.getBalances().getBTC();
-			this.Hashrate = "" + data.getHash_rate().toString();
-			this.RewardsNMC = "" + data.getBalances().getNMC();
-			this.Payout = "" + notAvailable;
-			this.Alive = "" + workers.get(0).getAlive();
-			this.Shares = workers.get(0).getWork().getBTC().getTotal_accepted()
-					.toString();
-			this.Stales = workers.get(0).getWork().getBTC().getTotal_rejected()
-					.toString();
-			this.Name = data.getName();
-			this.Workers = data.getWorkers();
-		}
-
-		public void setDifficulty() throws ClientProtocolException,
-				IOException, EOFException {
-
-			HttpClient client = new DefaultHttpClient();
-			HttpGet post = new HttpGet(
-					"http://blockexplorer.com/q/getdifficulty");
-			HttpResponse response = client.execute(post);
-			BufferedReader reader = new BufferedReader(new InputStreamReader(
-					response.getEntity().getContent(), "UTF-8"));
-			this.CurrentDifficulty = reader.readLine();
-			reader.close();
-
-			post = new HttpGet("http://blockexplorer.com/q/estimate");
-			response = client.execute(post);
-			reader = new BufferedReader(new InputStreamReader(response
-					.getEntity().getContent(), "UTF-8"));
-			this.NextDifficulty = reader.readLine();
-			reader.close();
+				view.addView(tvCurrentDifficulty);
+				view.addView(tvNextDifficulty);
+			}
 		}
 
 	}
 
 	protected static void readPreferences(Context context) {
-		// Get the xml/preferences.xml preferences
 		SharedPreferences prefs = PreferenceManager
 				.getDefaultSharedPreferences(context);
 
-		SharedPreferences.OnSharedPreferenceChangeListener prefListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
-			public void onSharedPreferenceChanged(SharedPreferences pPrefs,
-					String key) {
-
-				pref_favPool = pPrefs.getString("favpoolPref", "bitminter");
-			}
-		};
-
-		prefs.registerOnSharedPreferenceChangeListener(prefListener);
-
-		pref_favPool = prefs.getString("favpoolPref", "bitminter");
+		pref_emcKey = prefs.getString("emcKey", "");
+		pref_slushKey = prefs.getString("slushKey", "");
+		pref_bitminterKey = prefs.getString("bitminterKey", "");
+		pref_deepbitKey = prefs.getString("deepbitKey", "");
+		pref_50BTCKey = prefs.getString("50BTCKey", "");
 	}
 
 }

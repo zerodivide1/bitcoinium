@@ -27,18 +27,18 @@ import android.widget.TextView;
 
 import com.actionbarsherlock.app.SherlockFragment;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.veken0m.miningpools.bitminter.BitMinterData;
-import com.veken0m.miningpools.bitminter.Workers;
+import com.veken0m.miningpools.fiftybtc.FiftyBTC;
+import com.veken0m.miningpools.fiftybtc.Worker;
 
-public class BitMinterFragment extends SherlockFragment {
+public class FiftyBTCFragment extends SherlockFragment {
 
-	protected static String pref_bitminterKey = "";
-	protected static BitMinterData data;
+	protected static String pref_50BTCKey = "";
+	protected static FiftyBTC data;
 	protected Boolean connectionFail = false;
 	private ProgressDialog minerProgressDialog;
 	final Handler mMinerHandler = new Handler();
 
-	public BitMinterFragment() {
+	public FiftyBTCFragment() {
 	}
 
 	@Override
@@ -57,22 +57,17 @@ public class BitMinterFragment extends SherlockFragment {
 		try {
 			HttpClient client = new DefaultHttpClient();
 
-			// pref_bitminterKey = "M3IIJ5OCN2SQKRGRYVIXUFCJGG44DPNJ"; //Test
-			// Key
-
-			HttpGet post = new HttpGet("https://bitminter.com/api/users"
-					+ "?key=" + pref_bitminterKey);
+			HttpGet post = new HttpGet("https://50btc.com/en/api/"
+					+ pref_50BTCKey + "?text=1");
 			HttpResponse response = client.execute(post);
-
 			ObjectMapper mapper = new ObjectMapper();
 			data = mapper.readValue(new InputStreamReader(response.getEntity()
-					.getContent(), "UTF-8"), BitMinterData.class);
+					.getContent(), "UTF-8"), FiftyBTC.class);
 
 		} catch (Exception e) {
 			e.printStackTrace();
 			connectionFail = true;
 		}
-
 	}
 
 	private void viewMinerStats(View view) {
@@ -82,11 +77,11 @@ public class BitMinterFragment extends SherlockFragment {
 		minerProgressDialog = ProgressDialog.show(view.getContext(),
 				"Working...", "Retrieving Miner Stats", true, false);
 
-		OrderbookThread gt = new OrderbookThread();
+		MinerStatsThread gt = new MinerStatsThread();
 		gt.start();
 	}
 
-	public class OrderbookThread extends Thread {
+	public class MinerStatsThread extends Thread {
 
 		@Override
 		public void run() {
@@ -110,7 +105,7 @@ public class BitMinterFragment extends SherlockFragment {
 		if (connectionFail) {
 			AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 			builder.setMessage("Could not retrieve data from "
-					+ "BitMinter"
+					+ "50BTC"
 					+ "\n\nPlease make sure that your API Token is entered correctly and that 3G or Wifi is working properly.");
 			builder.setPositiveButton("Ok",
 					new DialogInterface.OnClickListener() {
@@ -135,87 +130,110 @@ public class BitMinterFragment extends SherlockFragment {
 			TableRow tr1 = new TableRow(getActivity());
 			TableRow tr2 = new TableRow(getActivity());
 			TableRow tr3 = new TableRow(getActivity());
+			TableRow tr4 = new TableRow(getActivity());
+			TableRow tr5 = new TableRow(getActivity());
+			TableRow tr6 = new TableRow(getActivity());
+			TableRow tr7 = new TableRow(getActivity());
+			TableRow tr9 = new TableRow(getActivity());
 
 			TextView tvBTCRewards = new TextView(getActivity());
-			TextView tvNMCRewards = new TextView(getActivity());
-			TextView tvTotalHashrate = new TextView(getActivity());
+			TextView tvBTCPayout = new TextView(getActivity());
+			TextView tvHashrate = new TextView(getActivity());
 
 			tr1.setGravity(Gravity.CENTER_HORIZONTAL);
 			tr2.setGravity(Gravity.CENTER_HORIZONTAL);
 			tr3.setGravity(Gravity.CENTER_HORIZONTAL);
+			tr4.setGravity(Gravity.CENTER_HORIZONTAL);
+			tr5.setGravity(Gravity.CENTER_HORIZONTAL);
+			tr6.setGravity(Gravity.CENTER_HORIZONTAL);
+			tr7.setGravity(Gravity.CENTER_HORIZONTAL);
+			tr9.setGravity(Gravity.CENTER_HORIZONTAL);
 
-			String RewardsBTC = "BTC Reward: " + data.getBalances().getBTC()
-					+ " BTC";
-			String RewardsNMC = "NMC Reward: " + data.getBalances().getNMC()
-					+ " NMC";
+			String RewardsBTC = "Reward: "
+					+ data.getUser().getConfirmed_rewards();
 			String Hashrate = "Total Hashrate: "
-					+ data.getHash_rate().toString() + " MH/s\n";
+					+ data.getUser().getHash_rate() + " MH/s\n";
+			String Payout = "Total Payout: " + data.getUser().getPayouts()
+					+ " BTC";
 
 			tvBTCRewards.setText(RewardsBTC);
-			tvNMCRewards.setText(RewardsNMC);
-			tvTotalHashrate.setText(Hashrate);
+			tvBTCPayout.setText(Payout);
+			tvHashrate.setText(Hashrate);
 
 			tr1.addView(tvBTCRewards);
-			tr2.addView(tvNMCRewards);
-			tr3.addView(tvTotalHashrate);
+			tr2.addView(tvBTCPayout);
+			tr3.addView(tvHashrate);
 
 			t1.addView(tr1);
 			t1.addView(tr2);
 			t1.addView(tr3);
 
-			// End of Non-worker data
-			List<Workers> workers = data.getWorkers();
+			// WORKER INFO
+			List<Worker> workers = data.getWorkers().getWorkers();
 			for (int i = 0; i < workers.size(); i++) {
-				TableRow tr8 = new TableRow(getActivity());
-				TableRow tr9 = new TableRow(getActivity());
+				Worker worker = workers.get(i);
+
+				String name = "Miner: " + worker.getWorker_name();
+				String alive = "Alive: " + worker.getAlive();
+				String minerHashrate = "Hashrate: " + worker.getHash_rate()
+						+ " MH/s";
+				String shares = "Shares: " + worker.getShares().floatValue();
+				String lastShare = "Last Share: "
+						+ worker.getLast_share().floatValue();
+				String totalShares = "Total Shares: "
+						+ worker.getTotal_shares();
+
 				TableRow tr10 = new TableRow(getActivity());
 				TableRow tr11 = new TableRow(getActivity());
 				TableRow tr12 = new TableRow(getActivity());
+				TableRow tr13 = new TableRow(getActivity());
+				TableRow tr14 = new TableRow(getActivity());
 
 				TextView tvMinerName = new TextView(getActivity());
-				TextView tvHashrate = new TextView(getActivity());
 				TextView tvAlive = new TextView(getActivity());
+				TextView tvMinerHashrate = new TextView(getActivity());
 				TextView tvShares = new TextView(getActivity());
-				TextView tvStales = new TextView(getActivity());
+				TextView tvLastShare = new TextView(getActivity());
+				TextView tvTotalShares = new TextView(getActivity());
 
-				tr8.setGravity(Gravity.CENTER_HORIZONTAL);
-				tr9.setGravity(Gravity.CENTER_HORIZONTAL);
 				tr10.setGravity(Gravity.CENTER_HORIZONTAL);
 				tr11.setGravity(Gravity.CENTER_HORIZONTAL);
 				tr12.setGravity(Gravity.CENTER_HORIZONTAL);
+				tr13.setGravity(Gravity.CENTER_HORIZONTAL);
+				tr14.setGravity(Gravity.CENTER_HORIZONTAL);
 
-				tvMinerName.setText("Miner: " + workers.get(i).getName());
-				tvHashrate.setText("Hashrate: "
-						+ Utils.formatDecimal(workers.get(i).getHash_rate()
-								.floatValue(), 2, false) + " MH/s");
-				tvAlive.setText("Alive: " + workers.get(i).getAlive());
-				tvShares.setText("Shares: "
-						+ Utils.formatDecimal(workers.get(i).getWork().getBTC()
-								.getTotal_accepted().floatValue(), 0, true));
-				tvStales.setText("Stales: "
-						+ Utils.formatDecimal(workers.get(i).getWork().getBTC()
-								.getTotal_rejected().floatValue(), 0, true));
+				tvMinerName.setText(name);
+				tvAlive.setText(alive);
+				tvMinerHashrate.setText(minerHashrate);
+				tvShares.setText(shares);
+				tvLastShare.setText(lastShare);
+				tvTotalShares.setText(totalShares);
 
-				if (workers.get(i).getAlive()) {
+				if (worker.getAlive()) {
 					tvMinerName.setTextColor(Color.GREEN);
 				} else {
 					tvMinerName.setTextColor(Color.RED);
 				}
 
-				tr8.addView(tvMinerName);
-				tr9.addView(tvHashrate);
-				tr10.addView(tvAlive);
+				tr9.addView(tvMinerName);
+				tr10.addView(tvMinerHashrate);
 				tr11.addView(tvShares);
-				tr12.addView(tvStales);
+				tr12.addView(tvLastShare);
+				tr13.addView(tvTotalShares);
+				tr14.addView(tvAlive);
 
-				t1.addView(tr8);
+				t1.addView(tr6);
 				t1.addView(tr9);
+				t1.addView(tr14);
 				t1.addView(tr10);
 				t1.addView(tr11);
 				t1.addView(tr12);
+				t1.addView(tr13);
 			}
+
 		} catch (Exception e) {
 			e.printStackTrace();
+
 		}
 	}
 
@@ -223,7 +241,7 @@ public class BitMinterFragment extends SherlockFragment {
 		SharedPreferences prefs = PreferenceManager
 				.getDefaultSharedPreferences(context);
 
-		pref_bitminterKey = prefs.getString("bitminterKey", "");
+		pref_50BTCKey = prefs.getString("50BTCKey", "");
 	}
 
 }

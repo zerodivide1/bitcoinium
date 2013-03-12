@@ -13,7 +13,6 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
@@ -27,18 +26,18 @@ import android.widget.TextView;
 
 import com.actionbarsherlock.app.SherlockFragment;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.veken0m.miningpools.bitminter.BitMinterData;
-import com.veken0m.miningpools.bitminter.Workers;
+import com.veken0m.miningpools.emc.EMC;
+import com.veken0m.miningpools.emc.Workers;
 
-public class BitMinterFragment extends SherlockFragment {
+public class EMCFragment extends SherlockFragment {
 
-	protected static String pref_bitminterKey = "";
-	protected static BitMinterData data;
+	protected static String pref_emcKey = "";
+	protected static EMC data;
 	protected Boolean connectionFail = false;
 	private ProgressDialog minerProgressDialog;
 	final Handler mMinerHandler = new Handler();
 
-	public BitMinterFragment() {
+	public EMCFragment() {
 	}
 
 	@Override
@@ -55,24 +54,20 @@ public class BitMinterFragment extends SherlockFragment {
 	public void getMinerStats(Context context) {
 
 		try {
+			
 			HttpClient client = new DefaultHttpClient();
-
-			// pref_bitminterKey = "M3IIJ5OCN2SQKRGRYVIXUFCJGG44DPNJ"; //Test
-			// Key
-
-			HttpGet post = new HttpGet("https://bitminter.com/api/users"
-					+ "?key=" + pref_bitminterKey);
+			HttpGet post = new HttpGet("https://eclipsemc.com/api.php?key=" + pref_emcKey + "&action=userstats");
 			HttpResponse response = client.execute(post);
 
 			ObjectMapper mapper = new ObjectMapper();
-			data = mapper.readValue(new InputStreamReader(response.getEntity()
-					.getContent(), "UTF-8"), BitMinterData.class);
+			data = mapper.readValue(new InputStreamReader(
+					response.getEntity().getContent(), "UTF-8"),
+					EMC.class);
 
 		} catch (Exception e) {
 			e.printStackTrace();
 			connectionFail = true;
 		}
-
 	}
 
 	private void viewMinerStats(View view) {
@@ -110,7 +105,7 @@ public class BitMinterFragment extends SherlockFragment {
 		if (connectionFail) {
 			AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 			builder.setMessage("Could not retrieve data from "
-					+ "BitMinter"
+					+ "EMC"
 					+ "\n\nPlease make sure that your API Token is entered correctly and that 3G or Wifi is working properly.");
 			builder.setPositiveButton("Ok",
 					new DialogInterface.OnClickListener() {
@@ -135,87 +130,104 @@ public class BitMinterFragment extends SherlockFragment {
 			TableRow tr1 = new TableRow(getActivity());
 			TableRow tr2 = new TableRow(getActivity());
 			TableRow tr3 = new TableRow(getActivity());
+			TableRow tr4 = new TableRow(getActivity());
+			TableRow tr5 = new TableRow(getActivity());
 
-			TextView tvBTCRewards = new TextView(getActivity());
-			TextView tvNMCRewards = new TextView(getActivity());
-			TextView tvTotalHashrate = new TextView(getActivity());
+			TextView tvConfirmedRewards = new TextView(getActivity());
+			TextView tvUnconfirmedRewards = new TextView(getActivity());
+			TextView tvEstimatedRewards = new TextView(getActivity());
+			TextView tvTotalRewards = new TextView(getActivity());
+			TextView tvBlocksFound = new TextView(getActivity());
 
 			tr1.setGravity(Gravity.CENTER_HORIZONTAL);
 			tr2.setGravity(Gravity.CENTER_HORIZONTAL);
 			tr3.setGravity(Gravity.CENTER_HORIZONTAL);
-
-			String RewardsBTC = "BTC Reward: " + data.getBalances().getBTC()
-					+ " BTC";
-			String RewardsNMC = "NMC Reward: " + data.getBalances().getNMC()
-					+ " NMC";
-			String Hashrate = "Total Hashrate: "
-					+ data.getHash_rate().toString() + " MH/s\n";
-
-			tvBTCRewards.setText(RewardsBTC);
-			tvNMCRewards.setText(RewardsNMC);
-			tvTotalHashrate.setText(Hashrate);
-
-			tr1.addView(tvBTCRewards);
-			tr2.addView(tvNMCRewards);
-			tr3.addView(tvTotalHashrate);
+			tr4.setGravity(Gravity.CENTER_HORIZONTAL);
+			tr5.setGravity(Gravity.CENTER_HORIZONTAL);
+			
+			// User Data
+			String ConfirmedRewardsBTC = "Confirmed Rewards: " + data.getData().getUser().getConfirmed_rewards()  + " BTC";
+			String UnconfirmedRewardsBTC = "Unconfirmed Rewards: " + data.getData().getUser().getUnconfirmed_rewards()  + " BTC";
+			String EstimatedRewardsBTC = "Estimated Rewards: " + data.getData().getUser().getEstimated_rewards()  + " BTC";
+			String TotalRewardsBTC = "Total Rewards: " + data.getData().getUser().getTotal_payout()  + " BTC";
+			String BlocksFound = "Blocks Found: " + data.getData().getUser().getBlocks_found();
+			
+			tvConfirmedRewards.setText(ConfirmedRewardsBTC);
+			tvUnconfirmedRewards.setText(UnconfirmedRewardsBTC);
+			tvEstimatedRewards.setText(EstimatedRewardsBTC);
+			tvTotalRewards.setText(TotalRewardsBTC);
+			tvBlocksFound.setText(BlocksFound);
+			
+			tr1.addView(tvEstimatedRewards);
+			tr2.addView(tvConfirmedRewards);
+			tr3.addView(tvUnconfirmedRewards);
+			tr4.addView(tvTotalRewards);
+			tr5.addView(tvBlocksFound);
 
 			t1.addView(tr1);
 			t1.addView(tr2);
 			t1.addView(tr3);
+			t1.addView(tr4);
+			t1.addView(tr5);
 
-			// End of Non-worker data
+			// TODO: Fix Miner data JSON mapping from EMC
+			// Miner Data
 			List<Workers> workers = data.getWorkers();
-			for (int i = 0; i < workers.size(); i++) {
+			
+			for(int i = 0; i < workers.size(); i++){
+				String WorkerName = "\nWorker: " + workers.get(i).getWorker_name();
+				String HashRate = "Hashrate: " + workers.get(i).getHash_rate();
+				String RoundShares = "Round Shares: " + workers.get(i).getRound_shares();
+				String ResetShares = "Reset Shares: " + workers.get(i).getReset_shares();
+				String TotalShares = "Total Shares: " + workers.get(i).getTotal_shares();
+				String LastActivity = "Latest Activity: " + workers.get(i).getLast_activity();
+				
 				TableRow tr8 = new TableRow(getActivity());
 				TableRow tr9 = new TableRow(getActivity());
 				TableRow tr10 = new TableRow(getActivity());
 				TableRow tr11 = new TableRow(getActivity());
 				TableRow tr12 = new TableRow(getActivity());
-
-				TextView tvMinerName = new TextView(getActivity());
-				TextView tvHashrate = new TextView(getActivity());
-				TextView tvAlive = new TextView(getActivity());
-				TextView tvShares = new TextView(getActivity());
-				TextView tvStales = new TextView(getActivity());
-
+				TableRow tr13 = new TableRow(getActivity());
+				
+				TextView tvWorkerName = new TextView(getActivity());
+				TextView tvMinerHashrate = new TextView(getActivity());
+				TextView tvRoundShares = new TextView(getActivity());
+				TextView tvResetShares = new TextView(getActivity());
+				TextView tvTotalShares = new TextView(getActivity());
+				TextView tvLastActivity = new TextView(getActivity());
+				
 				tr8.setGravity(Gravity.CENTER_HORIZONTAL);
 				tr9.setGravity(Gravity.CENTER_HORIZONTAL);
 				tr10.setGravity(Gravity.CENTER_HORIZONTAL);
 				tr11.setGravity(Gravity.CENTER_HORIZONTAL);
 				tr12.setGravity(Gravity.CENTER_HORIZONTAL);
-
-				tvMinerName.setText("Miner: " + workers.get(i).getName());
-				tvHashrate.setText("Hashrate: "
-						+ Utils.formatDecimal(workers.get(i).getHash_rate()
-								.floatValue(), 2, false) + " MH/s");
-				tvAlive.setText("Alive: " + workers.get(i).getAlive());
-				tvShares.setText("Shares: "
-						+ Utils.formatDecimal(workers.get(i).getWork().getBTC()
-								.getTotal_accepted().floatValue(), 0, true));
-				tvStales.setText("Stales: "
-						+ Utils.formatDecimal(workers.get(i).getWork().getBTC()
-								.getTotal_rejected().floatValue(), 0, true));
-
-				if (workers.get(i).getAlive()) {
-					tvMinerName.setTextColor(Color.GREEN);
-				} else {
-					tvMinerName.setTextColor(Color.RED);
-				}
-
-				tr8.addView(tvMinerName);
-				tr9.addView(tvHashrate);
-				tr10.addView(tvAlive);
-				tr11.addView(tvShares);
-				tr12.addView(tvStales);
+				tr13.setGravity(Gravity.CENTER_HORIZONTAL);
+				
+				tvWorkerName.setText(WorkerName);
+				tvMinerHashrate.setText(HashRate);
+				tvRoundShares.setText(RoundShares);
+				tvResetShares.setText(ResetShares);
+				tvTotalShares.setText(TotalShares);
+				tvLastActivity.setText(LastActivity);
+				
+				tr8.addView(tvWorkerName);
+				tr9.addView(tvMinerHashrate);
+				tr10.addView(tvRoundShares);
+				tr11.addView(tvResetShares);
+				tr12.addView(tvTotalShares);
+				tr13.addView(tvLastActivity);
 
 				t1.addView(tr8);
 				t1.addView(tr9);
 				t1.addView(tr10);
 				t1.addView(tr11);
 				t1.addView(tr12);
+				t1.addView(tr13);		
 			}
+
 		} catch (Exception e) {
 			e.printStackTrace();
+
 		}
 	}
 
@@ -223,7 +235,7 @@ public class BitMinterFragment extends SherlockFragment {
 		SharedPreferences prefs = PreferenceManager
 				.getDefaultSharedPreferences(context);
 
-		pref_bitminterKey = prefs.getString("bitminterKey", "");
+		pref_emcKey = prefs.getString("emcKey", "");
 	}
 
 }

@@ -1,4 +1,4 @@
-package com.veken0m.miningpools.deepbit;
+package com.veken0m.miningpools.fiftybtc;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,5 +30,4 @@ public class Workers {
 		this.workers.add(worker);
 		this.names.add(name);
 	}
-
 }
