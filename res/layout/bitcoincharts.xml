@@ -3,7 +3,7 @@
     xmlns:ads="http://schemas.android.com/apk/lib/com.google.ads"
     android:id="@+id/bitcoincharts_layout"
     android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="fill_parent"
     android:layout_marginLeft="2dp"
     android:layout_marginRight="2dp"
     android:background="@android:color/black" >
@@ -102,6 +102,23 @@
             android:stretchColumns="5" >
         </TableLayout>
     </ScrollView>
+    
+    
+    <LinearLayout
+        android:id="@+id/linlaHeaderProgress3"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:gravity="center_vertical|center_horizontal"
+        android:visibility="gone" >
+
+        <ProgressBar
+            android:id="@+id/pbHeaderProgress3"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical|center_horizontal" >
+        </ProgressBar>
+    </LinearLayout>
     
         <com.google.ads.AdView
         android:id="@+id/adView"

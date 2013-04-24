@@ -1,4 +1,4 @@
-package com.veken0m.cavirtex;
+package com.veken0m.cavirtex.mining;
 
 import java.io.InputStreamReader;
 import java.util.List;
@@ -27,8 +27,10 @@ import android.widget.TextView;
 
 import com.actionbarsherlock.app.SherlockFragment;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.veken0m.miningpools.bitminter.BitMinterData;
-import com.veken0m.miningpools.bitminter.Workers;
+import com.veken0m.cavirtex.R;
+import com.veken0m.cavirtex.mining.bitminter.BitMinterData;
+import com.veken0m.cavirtex.mining.bitminter.Workers;
+import com.veken0m.cavirtex.utils.Utils;
 
 public class BitMinterFragment extends SherlockFragment {
 
@@ -57,8 +59,8 @@ public class BitMinterFragment extends SherlockFragment {
 		try {
 			HttpClient client = new DefaultHttpClient();
 
-			// pref_bitminterKey = "M3IIJ5OCN2SQKRGRYVIXUFCJGG44DPNJ"; //Test
-			// Key
+			// Test Key
+			// pref_bitminterKey = "M3IIJ5OCN2SQKRGRYVIXUFCJGG44DPNJ";
 
 			HttpGet post = new HttpGet("https://bitminter.com/api/users"
 					+ "?key=" + pref_bitminterKey);
@@ -80,7 +82,7 @@ public class BitMinterFragment extends SherlockFragment {
 			return;
 		}
 		minerProgressDialog = ProgressDialog.show(view.getContext(),
-				"Working...", "Retrieving Miner Stats", true, true);
+				"Working...", "Retrieving Miner Stats", true, false);
 
 		OrderbookThread gt = new OrderbookThread();
 		gt.start();
@@ -131,7 +133,6 @@ public class BitMinterFragment extends SherlockFragment {
 
 			TableLayout t1 = (TableLayout) getView().findViewById(
 					R.id.minerStatlist);
-			t1.removeAllViews();
 
 			TableRow tr1 = new TableRow(getActivity());
 			TableRow tr2 = new TableRow(getActivity());

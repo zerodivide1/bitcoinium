@@ -1,13 +1,16 @@
-package com.veken0m.cavirtex;
+package com.veken0m.cavirtex.exchanges;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-public class Bitcoin24Fragment extends BaseExchangeFragment {
+import com.veken0m.cavirtex.R;
+import com.veken0m.cavirtex.BaseExchangeFragment;
 
-	public Bitcoin24Fragment() {
+public class CampBXFragment extends BaseExchangeFragment {
+
+	public CampBXFragment() {
 	}
 
 	@Override
@@ -15,7 +18,7 @@ public class Bitcoin24Fragment extends BaseExchangeFragment {
 			Bundle savedInstanceState) {
 
 		View view = inflater.inflate(R.layout.menu_fragment, container, false);
-		buildMenu(view, BITCOIN24, false);
+		buildMenu(view, CAMPBX, false);
 		return view;
 	}
 

@@ -10,10 +10,20 @@ Currently supported exchanges include:
 	- Bitstamp : http://bitstamp.net
 	- CampBX: http://campbx.com
 	- BitcoinCentral: http://bitcoin-central.net
+	- Bitfloor: https://bitfloor.com/
+	- Bitcoin-24: https://bitcoin-24.com/
 	
 	
 Additional Information from:	
 	- Bitcoin Charts			: http://bitcoincharts.com/markets/
+
+Supported Mining Pools:
+
+	- Deepbit : http://deepbit.net
+	- BitMinter : http://bitminter.com
+	- EclipseMC : https://eclipsemc.com
+	- Slush : http://mining.bitcoin.cz
+	- 50BTC : https://50btc.com/en
 
 Features
 ===============

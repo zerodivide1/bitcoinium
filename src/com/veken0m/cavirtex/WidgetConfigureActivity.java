@@ -13,6 +13,9 @@ import android.preference.PreferenceActivity;
 import android.preference.PreferenceGroup;
 import android.preference.PreferenceManager;
 
+import com.veken0m.cavirtex.R;
+import com.veken0m.cavirtex.exchanges.Exchange;
+
 public class WidgetConfigureActivity extends PreferenceActivity {
 
 	private static final String PREFS_NAME = "com.veken0m.cavirtex.WidgetProvider";
@@ -42,7 +45,7 @@ public class WidgetConfigureActivity extends PreferenceActivity {
 		((ListPreference) findPreference("bitstampWidgetCurrencyPref")).setEnabled(false);
 		((ListPreference) findPreference("campbxWidgetCurrencyPref")).setEnabled(false);
 		((ListPreference) findPreference("bitcoincentralWidgetCurrencyPref")).setEnabled(false);
-		((ListPreference) findPreference("bitfloorWidgetCurrencyPref")).setEnabled(false);
+		//((ListPreference) findPreference("bitfloorWidgetCurrencyPref")).setEnabled(false);
 		((ListPreference) findPreference("bitcoin24WidgetCurrencyPref")).setEnabled(false);
 		try{
 		((ListPreference) findPreference(widgetExchangePref.getEntry().toString().toLowerCase().replace("exchange", "") + "WidgetCurrencyPref")).setEnabled(true);
@@ -77,7 +80,7 @@ public class WidgetConfigureActivity extends PreferenceActivity {
         		((ListPreference) findPreference("bitstampWidgetCurrencyPref")).setEnabled(false);
         		((ListPreference) findPreference("campbxWidgetCurrencyPref")).setEnabled(false);
         		((ListPreference) findPreference("bitcoincentralWidgetCurrencyPref")).setEnabled(false);
-        		((ListPreference) findPreference("bitfloorWidgetCurrencyPref")).setEnabled(false);
+        		//((ListPreference) findPreference("bitfloorWidgetCurrencyPref")).setEnabled(false);
         		((ListPreference) findPreference("bitcoin24WidgetCurrencyPref")).setEnabled(false);
         		((ListPreference) findPreference(newValue.toString().toLowerCase().replace("exchange", "") + "WidgetCurrencyPref")).setEnabled(true);		
             	

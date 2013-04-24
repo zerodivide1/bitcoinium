@@ -30,10 +30,16 @@ import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
+import com.veken0m.cavirtex.R;
+import com.veken0m.cavirtex.mining.BitMinterFragment;
+import com.veken0m.cavirtex.mining.DeepBitFragment;
+import com.veken0m.cavirtex.mining.EMCFragment;
+import com.veken0m.cavirtex.mining.FiftyBTCFragment;
+import com.veken0m.cavirtex.mining.SlushFragment;
+import com.veken0m.cavirtex.utils.Utils;
 
 public class MinerStatsActivity extends SherlockFragmentActivity {
 
-	static String pref_favPool;
 	private static String pref_emcKey;
 	private static String pref_slushKey;
 	private static String pref_bitminterKey;
@@ -121,7 +127,6 @@ public class MinerStatsActivity extends SherlockFragmentActivity {
 
 		@Override
 		public void onTabReselected(Tab tab, FragmentTransaction ft) {
-			// ft.replace(R.id.table_fragment, fragment);
 		}
 
 		@Override
@@ -142,10 +147,10 @@ public class MinerStatsActivity extends SherlockFragmentActivity {
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		MenuInflater inflater = getSupportMenuInflater();
-		inflater.inflate(R.menu.menu, menu);
+		inflater.inflate(R.menu.settings_menu, menu);
 		return true;
 	}
-
+	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		if (item.getItemId() == R.id.preferences) {
@@ -188,28 +193,32 @@ public class MinerStatsActivity extends SherlockFragmentActivity {
 		protected void onPostExecute(Boolean result) {
 			if (result) {
 				LinearLayout view = (LinearLayout) findViewById(R.id.miner_difficulty);
-
-				TextView tvCurrentDifficulty = new TextView(getBaseContext());
+				TextView tvCurrentDifficulty = new TextView(
+						getBaseContext());
 				TextView tvNextDifficulty = new TextView(getBaseContext());
+				
+				try {
+					tvCurrentDifficulty.setText("\nCurrent Difficulty: "
+							+ Utils.formatDecimal(
+									Float.valueOf(CurrentDifficulty), 0, true));
+					tvCurrentDifficulty.setGravity(Gravity.CENTER_HORIZONTAL);
+					tvNextDifficulty.setText("Estimated Next Difficulty: "
+							+ Utils.formatDecimal(
+									Float.valueOf(NextDifficulty), 0, true)
+							+ "\n");
+					tvNextDifficulty.setGravity(Gravity.CENTER_HORIZONTAL);
 
-				tvCurrentDifficulty.setText("\nCurrent Difficulty: "
-						+ Utils.formatDecimal(Float.valueOf(CurrentDifficulty),
-								0, true));
-				tvCurrentDifficulty.setGravity(Gravity.CENTER_HORIZONTAL);
-				tvNextDifficulty.setText("Estimated Next Difficulty: "
-						+ Utils.formatDecimal(Float.valueOf(NextDifficulty), 0,
-								true) + "\n");
-				tvNextDifficulty.setGravity(Gravity.CENTER_HORIZONTAL);
-
-				if (Float.valueOf(NextDifficulty) < Float
-						.valueOf(CurrentDifficulty)) {
-					tvNextDifficulty.setTextColor(Color.GREEN);
-				} else {
-					tvNextDifficulty.setTextColor(Color.RED);
+					if (Float.valueOf(NextDifficulty) < Float
+							.valueOf(CurrentDifficulty)) {
+						tvNextDifficulty.setTextColor(Color.GREEN);
+					} else {
+						tvNextDifficulty.setTextColor(Color.RED);
+					}
+					view.addView(tvCurrentDifficulty);
+					view.addView(tvNextDifficulty);
+				} catch (Exception e) {
+					// Difficulty was NaN...
 				}
-
-				view.addView(tvCurrentDifficulty);
-				view.addView(tvNextDifficulty);
 			}
 		}
 

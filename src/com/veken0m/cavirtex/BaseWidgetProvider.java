@@ -16,24 +16,19 @@ import android.preference.PreferenceManager;
 import android.provider.AlarmClock;
 import android.text.format.Time;
 
+import com.veken0m.cavirtex.R;
 import com.veken0m.cavirtex.WidgetProvider.UpdateService;
 
 public class BaseWidgetProvider extends AppWidgetProvider {
 
 	public static final String REFRESH = "com.veken0m.cavirtex.REFRESH";
-	public static final String GRAPH = "com.veken0m.cavirtex.GRAPH";
 
 	/**
 	 * List of preference variables
 	 */
-	static Boolean pref_DisplayUpdates;
 	static int pref_widgetRefreshFreq;
-	static String pref_widgetBehaviour;
-	static Boolean pref_PriceAlarm;
-	static String pref_notifLimitLower;
-	static String pref_notifLimitUpper;
-	static String pref_currency;
-	static String pref_main_currency;
+	static Boolean pref_priceAlarm;
+	static Boolean pref_displayUpdates;
 	static Boolean pref_wakeupRefresh;
 	static Boolean pref_alarmSound;
 	static Boolean pref_alarmVibrate;
@@ -41,9 +36,18 @@ public class BaseWidgetProvider extends AppWidgetProvider {
 	static Boolean pref_widgetbidask;
 	static Boolean pref_wifionly;
 	static Boolean pref_alarmClock;
+	static String pref_main_currency;
 	static String pref_notificationSound;
+	static String pref_notifLimitLower;
+	static String pref_notifLimitUpper;
 	
-	
+	static int pref_mainWidgetTextColor;
+	static int pref_secondaryWidgetTextColor;
+	static int pref_backgroundWidgetColor;
+	static Boolean pref_showWidgetRefreshTime;
+	static int pref_widgetRefreshSuccessColor;
+	static int pref_widgetRefreshFailedColor;
+	static Boolean pref_enableWidgetCustomization;
 
 	// Service used to refresh widget
 	static PendingIntent widgetRefreshService = null;
@@ -54,11 +58,11 @@ public class BaseWidgetProvider extends AppWidgetProvider {
 		SharedPreferences prefs = PreferenceManager
 				.getDefaultSharedPreferences(context);
 
-		pref_DisplayUpdates = prefs.getBoolean("checkboxPref", false);
+		pref_displayUpdates = prefs.getBoolean("checkboxPref", false);
 		pref_widgetRefreshFreq = Integer.parseInt(prefs.getString("listPref",
 				"30"));
 		pref_wakeupRefresh = prefs.getBoolean("wakeupPref", true);
-		pref_PriceAlarm = prefs.getBoolean("alarmPref", false);
+		pref_priceAlarm = prefs.getBoolean("alarmPref", false);
 		pref_notifLimitUpper = prefs.getString(prefix + "Upper", "999");
 		pref_notifLimitLower = prefs.getString(prefix + "Lower", "0");
 		pref_alarmSound = prefs.getBoolean("alarmSoundPref", false);
@@ -66,28 +70,40 @@ public class BaseWidgetProvider extends AppWidgetProvider {
 		pref_ticker = prefs.getBoolean(prefix + "TickerPref", false);
 		pref_main_currency = prefs.getString(prefix + "CurrencyPref",
 				defaultCurrency);
-		pref_notificationSound = prefs.getString("notificationSoundPref", "DEFAULT_RINGTONE_URI");
+		pref_wifionly = prefs.getBoolean("wifiRefreshOnlyPref", false);
+		pref_notificationSound = prefs.getString("notificationSoundPref",
+				"DEFAULT_RINGTONE_URI");
 		pref_widgetbidask = prefs.getBoolean("bidasktogglePref", false);
 		pref_alarmClock = prefs.getBoolean("alarmClockPref", false);
+		
+		pref_mainWidgetTextColor = prefs.getInt("widgetMainTextColorPref", R.color.widgetMainTextColor);
+		pref_secondaryWidgetTextColor = prefs.getInt("widgetSecondaryTextColorPref", R.color.widgetSecondaryTextColor);
+		pref_backgroundWidgetColor = prefs.getInt("widgetBackgroundColorPref", R.color.widgetBackgroundColor);
+		//pref_showWidgetRefreshTime = prefs.getBoolean("showRefreshTimePref", true);
+		
+		pref_widgetRefreshSuccessColor = prefs.getInt("widgetRefreshSuccessColorPref", R.color.widgetRefreshSuccessColor);
+		pref_widgetRefreshFailedColor = prefs.getInt("widgetRefreshFailedColorPref", R.color.widgetRefreshFailedColor);
+		pref_enableWidgetCustomization = prefs.getBoolean("enableWidgetCustomizationPref", false);
+		
 	}
-	
+
 	protected static void readGeneralPreferences(Context context) {
 
 		SharedPreferences prefs = PreferenceManager
 				.getDefaultSharedPreferences(context);
 
-		pref_DisplayUpdates = prefs.getBoolean("checkboxPref", false);
+		pref_displayUpdates = prefs.getBoolean("checkboxPref", false);
 		pref_widgetRefreshFreq = Integer.parseInt(prefs.getString("listPref",
 				"30"));
 		pref_wakeupRefresh = prefs.getBoolean("wakeupPref", true);
-		pref_PriceAlarm = prefs.getBoolean("alarmPref", false);
+		pref_priceAlarm = prefs.getBoolean("alarmPref", false);
 		pref_alarmSound = prefs.getBoolean("alarmSoundPref", false);
 		pref_alarmVibrate = prefs.getBoolean("alarmVibratePref", false);
 		pref_wifionly = prefs.getBoolean("wifiRefreshOnlyPref", false);
-		pref_notificationSound = prefs.getString("notificationSoundPref", "DEFAULT_RINGTONE_URI");
+		pref_notificationSound = prefs.getString("notificationSoundPref",
+				"DEFAULT_RINGTONE_URI");
 		pref_widgetbidask = prefs.getBoolean("bidasktogglePref", false);
 		pref_alarmClock = prefs.getBoolean("alarmClockPref", false);
-		pref_wifionly = prefs.getBoolean("wifiRefreshOnlyPref", false);
 	}
 
 	protected static void readAlarmPreferences(Context context) {
@@ -95,14 +111,15 @@ public class BaseWidgetProvider extends AppWidgetProvider {
 		SharedPreferences prefs = PreferenceManager
 				.getDefaultSharedPreferences(context);
 
-		pref_DisplayUpdates = prefs.getBoolean("checkboxPref", false);
-		pref_widgetRefreshFreq = Integer.parseInt(prefs.getString("listPref",
-				"30"));
+		pref_displayUpdates = prefs.getBoolean("checkboxPref", false);
+		pref_widgetRefreshFreq = Integer.parseInt(prefs.getString("refreshPref",
+				"1800"));
 		pref_wakeupRefresh = prefs.getBoolean("wakeupPref", true);
-		pref_PriceAlarm = prefs.getBoolean("alarmPref", false);
+		pref_priceAlarm = prefs.getBoolean("alarmPref", false);
 		pref_alarmSound = prefs.getBoolean("alarmSoundPref", false);
 		pref_alarmVibrate = prefs.getBoolean("alarmVibratePref", false);
-		pref_notificationSound = prefs.getString("notificationSoundPref", "DEFAULT_RINGTONE_URI");
+		pref_notificationSound = prefs.getString("notificationSoundPref",
+				"DEFAULT_RINGTONE_URI");
 		pref_alarmClock = prefs.getBoolean("alarmClockPref", false);
 
 	}
@@ -131,17 +148,17 @@ public class BaseWidgetProvider extends AppWidgetProvider {
 
 		if (pref_wakeupRefresh) {
 			m1.setRepeating(AlarmManager.RTC, TIME.getTime().getTime(),
-					1000 * 60 * pref_widgetRefreshFreq, widgetRefreshService);
+					1000 * pref_widgetRefreshFreq, widgetRefreshService);
 		} else {
 			m1.setRepeating(AlarmManager.RTC_WAKEUP, TIME.getTime().getTime(),
-					1000 * 60 * pref_widgetRefreshFreq, widgetRefreshService);
+					1000 * pref_widgetRefreshFreq, widgetRefreshService);
 		}
 	}
-	
+
 	static void setAlarmClock(Context context) {
 		SharedPreferences prefs = PreferenceManager
 				.getDefaultSharedPreferences(context);
-        
+
 		Editor editor = prefs.edit();
 		editor.putBoolean("alarmClockPref", false);
 		editor.commit();
@@ -149,16 +166,17 @@ public class BaseWidgetProvider extends AppWidgetProvider {
 		dtNow.setToNow();
 		int hours = dtNow.hour;
 		int minutes = dtNow.minute + 1;
-		Intent i = new Intent(AlarmClock.ACTION_SET_ALARM);
-		i.putExtra(AlarmClock.EXTRA_MESSAGE, "Bitcoinium alarm (please delete)");
-		i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-	    i.putExtra(AlarmClock.EXTRA_HOUR, hours);
-	    i.putExtra(AlarmClock.EXTRA_MINUTES, minutes);
-	    i.putExtra(AlarmClock.EXTRA_SKIP_UI, true);
-        context.startActivity(i);
+		int sdk = android.os.Build.VERSION.SDK_INT;
+		if (sdk > android.os.Build.VERSION_CODES.GINGERBREAD) {
+			Intent i = new Intent(AlarmClock.ACTION_SET_ALARM);
+			i.putExtra(AlarmClock.EXTRA_MESSAGE, "Bitcoinium alarm (delete)");
+			i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+			i.putExtra(AlarmClock.EXTRA_HOUR, hours);
+			i.putExtra(AlarmClock.EXTRA_MINUTES, minutes);
+			i.putExtra(AlarmClock.EXTRA_SKIP_UI, true);
+			context.startActivity(i);
+		}
 	}
-	
-	
 
 	static void createNotification(Context ctxt, String lastPrice,
 			String exchange, int BITCOIN_NOTIFY_ID) {
@@ -175,18 +193,18 @@ public class BaseWidgetProvider extends AppWidgetProvider {
 		long when = System.currentTimeMillis();
 		Notification notification = new Notification(icon, tickerText, when);
 
-		Intent notificationIntent = new Intent(ctxt, BaseWidgetProvider.class);
+		Intent notificationIntent = new Intent(ctxt,
+				PriceAlarmPreferencesActivity.class);
 		PendingIntent contentIntent = PendingIntent.getActivity(ctxt, 0,
 				notificationIntent, 0);
-	
 
 		notification.setLatestEventInfo(ctxt, contentTitle, contentText,
 				contentIntent);
-	
+
 		if (pref_alarmSound) {
 			notification.sound = Uri.parse(pref_notificationSound);
 		}
-		
+
 		if (pref_alarmVibrate) {
 			notification.defaults |= Notification.DEFAULT_VIBRATE;
 		}
@@ -203,7 +221,7 @@ public class BaseWidgetProvider extends AppWidgetProvider {
 		long when = System.currentTimeMillis();
 		Notification notification = new Notification(icon, null, when);
 
-		Intent notificationIntent = new Intent(ctxt, BaseWidgetProvider.class);
+		Intent notificationIntent = new Intent(ctxt, PreferencesActivity.class);
 		PendingIntent contentIntent = PendingIntent.getActivity(ctxt, 0,
 				notificationIntent, 0);
 
@@ -213,27 +231,16 @@ public class BaseWidgetProvider extends AppWidgetProvider {
 		notification.flags |= Notification.FLAG_ONGOING_EVENT;
 		notification.flags |= Notification.FLAG_NO_CLEAR;
 
-		mNotificationManager.notify(BITCOIN_NOTIFY_ID, notification);
+		mNotificationManager.notify(100 + BITCOIN_NOTIFY_ID, notification);
 	}
 
 	static void removePermanentNotification(Context ctxt, int BITCOIN_NOTIFY_ID) {
 		String ns = Context.NOTIFICATION_SERVICE;
 		NotificationManager mNotificationManager = (NotificationManager) ctxt
 				.getSystemService(ns);
-		mNotificationManager.cancel(BITCOIN_NOTIFY_ID);
+		mNotificationManager.cancel(100 + BITCOIN_NOTIFY_ID);
 	}
 
-	/**
-	 * createTicker creates a notification which only briefly appears in the
-	 * ticker bar
-	 * 
-	 * @param Context
-	 *            ctxt
-	 * @param icon
-	 *            (such as R.drawable.bitcoin)
-	 * @param tickerText
-	 *            (notification ticker)
-	 */
 	static void createTicker(Context ctxt, int icon, CharSequence tickerText) {
 		String ns = Context.NOTIFICATION_SERVICE;
 		NotificationManager mNotificationManager = (NotificationManager) ctxt

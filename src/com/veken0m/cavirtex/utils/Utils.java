@@ -1,11 +1,9 @@
-package com.veken0m.cavirtex;
+package com.veken0m.cavirtex.utils;
 
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Locale;
 
 import org.joda.money.CurrencyUnit;
 
@@ -84,6 +82,7 @@ public class Utils {
 
 		return ((value >= min) && (value <= max));
 	}
+
 	public static String getCurrentTime(Context ctxt) {
 		Date time = new Date();
         DateFormat.getTimeFormat(ctxt).format(time);

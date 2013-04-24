@@ -1,4 +1,4 @@
-package com.veken0m.cavirtex;
+package com.veken0m.cavirtex.mining;
 
 import java.io.InputStreamReader;
 import java.util.List;
@@ -27,8 +27,9 @@ import android.widget.TextView;
 
 import com.actionbarsherlock.app.SherlockFragment;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.veken0m.miningpools.deepbit.DeepBitData;
-import com.veken0m.miningpools.deepbit.Worker;
+import com.veken0m.cavirtex.R;
+import com.veken0m.cavirtex.mining.deepbit.DeepBitData;
+import com.veken0m.cavirtex.mining.deepbit.Worker;
 
 public class DeepBitFragment extends SherlockFragment {
 
@@ -76,7 +77,7 @@ public class DeepBitFragment extends SherlockFragment {
 			return;
 		}
 		minerProgressDialog = ProgressDialog.show(view.getContext(),
-				"Working...", "Retrieving Miner Stats", true, true);
+				"Working...", "Retrieving Miner Stats", true, false);
 
 		MinerStatsThread gt = new MinerStatsThread();
 		gt.start();
@@ -127,7 +128,6 @@ public class DeepBitFragment extends SherlockFragment {
 
 			TableLayout t1 = (TableLayout) getView().findViewById(
 					R.id.minerStatlist);
-			t1.removeAllViews();
 
 			TableRow tr1 = new TableRow(getActivity());
 			TableRow tr2 = new TableRow(getActivity());

@@ -1,7 +1,6 @@
 package com.veken0m.cavirtex;
 
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -9,6 +8,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TableRow.LayoutParams;
@@ -19,15 +19,15 @@ import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
+import com.veken0m.cavirtex.R;
+import com.veken0m.cavirtex.utils.Utils;
 import com.xeiam.xchange.bitcoincharts.BitcoinChartsFactory;
 import com.xeiam.xchange.bitcoincharts.dto.marketdata.BitcoinChartsTicker;
 
 public class BitcoinChartsActivity extends SherlockActivity {
-	BitcoinChartsTicker[] marketData;
 
-	protected static ProgressDialog bitcoinchartsProgressDialog;
 	final static Handler mOrderHandler = new Handler();
-	Boolean connectionFail = false;
+	BitcoinChartsTicker[] marketData;
 
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -71,10 +71,9 @@ public class BitcoinChartsActivity extends SherlockActivity {
 		try {
 			marketData = BitcoinChartsFactory.createInstance().getMarketData();
 		} catch (Exception e) {
-			connectionFail = true;
+			connectionFailed();
 			e.printStackTrace();
 		}
-
 	}
 
 	/**
@@ -83,84 +82,83 @@ public class BitcoinChartsActivity extends SherlockActivity {
 	public void drawBitcoinChartsUI() {
 
 		final TableLayout t1 = (TableLayout) findViewById(R.id.bitcoincharts_list);
-		t1.removeAllViewsInLayout();
+		LinearLayout linlaHeaderProgress = (LinearLayout) findViewById(R.id.linlaHeaderProgress3);
+		linlaHeaderProgress.setVisibility(View.GONE);
+
 		String previousCurrency = "";
 		int backGroundColor = Color.rgb(31, 31, 31);
 		LayoutParams params = new TableRow.LayoutParams(
 				LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, 1f);
 
-		for (BitcoinChartsTicker data : marketData) {
+		try {
+			for (BitcoinChartsTicker data : marketData) {
 
-			final TableRow tr1 = new TableRow(this);
+				final TableRow tr1 = new TableRow(this);
 
-			final TextView tvSymbol = new TextView(this);
-			final TextView tvLast = new TextView(this);
-			// final TextView tvAvg = new TextView(this);
-			final TextView tvVolume = new TextView(this);
-			final TextView tvHigh = new TextView(this);
-			final TextView tvLow = new TextView(this);
-			// final TextView tvBid = new TextView(this);
-			// final TextView tvAsk = new TextView(this);
-			String last = Utils.formatDecimal(data.getClose(), 2, true);
-			String high = Utils.formatDecimal(data.getHigh(), 2, true);
-			String low = Utils.formatDecimal(data.getLow(), 2, true);
-			String vol = Utils.formatDecimal(data.getVolume(), 2, true);
-			// String avg = Utils.formatDecimal(data.getAvg(), 2, true);
-			// String bid = Utils.formatDecimal(data.getBid(), 2, true);
-			// String ask = Utils.formatDecimal(data.getAsk(), 2, true);
-			
-			tvSymbol.setText(data.getSymbol());
-			tvSymbol.setLayoutParams(params);
-			Utils.setTextViewParams(tvLast, last);
-			Utils.setTextViewParams(tvVolume, vol);
-			Utils.setTextViewParams(tvLow, low);
-			Utils.setTextViewParams(tvHigh, high);
-			// Utils.setTextViewParams(tvAvg, avg);
-			// Utils.setTextViewParams(tvBid, bid);
-			// Utils.setTextViewParams(tvAsk, ask);
+				final TextView tvSymbol = new TextView(this);
+				final TextView tvLast = new TextView(this);
+				// final TextView tvAvg = new TextView(this);
+				final TextView tvVolume = new TextView(this);
+				final TextView tvHigh = new TextView(this);
+				final TextView tvLow = new TextView(this);
+				// final TextView tvBid = new TextView(this);
+				// final TextView tvAsk = new TextView(this);
+				String last = Utils.formatDecimal(data.getClose(), 2, true);
+				String high = Utils.formatDecimal(data.getHigh(), 2, true);
+				String low = Utils.formatDecimal(data.getLow(), 2, true);
+				String vol = Utils.formatDecimal(data.getVolume(), 2, true);
+				// String avg = Utils.formatDecimal(data.getAvg(), 2, true);
+				// String bid = Utils.formatDecimal(data.getBid(), 2, true);
+				// String ask = Utils.formatDecimal(data.getAsk(), 2, true);
 
-			// If currencies are different
-			if (!previousCurrency.equalsIgnoreCase(data.getCurrency())) {
-				// Change the background color
-				if (backGroundColor == Color.BLACK) {
-					backGroundColor = Color.rgb(31, 31, 31);
-				} else {
-					backGroundColor = Color.BLACK;
+				tvSymbol.setText(data.getSymbol());
+				tvSymbol.setLayoutParams(params);
+				Utils.setTextViewParams(tvLast, last);
+				Utils.setTextViewParams(tvVolume, vol);
+				Utils.setTextViewParams(tvLow, low);
+				Utils.setTextViewParams(tvHigh, high);
+				// Utils.setTextViewParams(tvAvg, avg);
+				// Utils.setTextViewParams(tvBid, bid);
+				// Utils.setTextViewParams(tvAsk, ask);
+
+				// If currencies are different
+				if (!previousCurrency.equalsIgnoreCase(data.getCurrency())) {
+					// Change the background color
+					if (backGroundColor == Color.BLACK) {
+						backGroundColor = Color.rgb(31, 31, 31);
+					} else {
+						backGroundColor = Color.BLACK;
+					}
 				}
+
+				tr1.setBackgroundColor(backGroundColor);
+
+				tr1.addView(tvSymbol);
+				tr1.addView(tvLast);
+				// tr1.addView(tvAvg);
+				tr1.addView(tvVolume);
+				tr1.addView(tvLow);
+				tr1.addView(tvHigh);
+				// tr1.addView(tvBid);
+				// tr1.addView(tvAsk);
+				tr1.setPadding(0, 3, 0, 3);
+				t1.addView(tr1);
+
+				// Insert a divider between rows
+				View divider = new View(this);
+				divider.setLayoutParams(new TableRow.LayoutParams(
+						TableRow.LayoutParams.MATCH_PARENT, 1));
+				divider.setBackgroundColor(Color.rgb(51, 51, 51));
+				t1.addView(divider);
+
+				previousCurrency = data.getCurrency();
 			}
-
-			tr1.setBackgroundColor(backGroundColor);
-
-			tr1.addView(tvSymbol);
-			tr1.addView(tvLast);
-			// tr1.addView(tvAvg);
-			tr1.addView(tvVolume);
-			tr1.addView(tvLow);
-			tr1.addView(tvHigh);
-			// tr1.addView(tvBid);
-			// tr1.addView(tvAsk);
-			tr1.setPadding(0, 3, 0, 3);
-			t1.addView(tr1);
-
-			// Insert a divider between rows
-			View divider = new View(this);
-			divider.setLayoutParams(new TableRow.LayoutParams(
-					TableRow.LayoutParams.MATCH_PARENT, 1));
-			divider.setBackgroundColor(Color.rgb(51, 51, 51));
-			t1.addView(divider);
-
-			previousCurrency = data.getCurrency();
+		} catch (Exception e) {
+			connectionFailed();
 		}
-
 	}
 
 	private void viewBitcoinCharts() {
-		if (bitcoinchartsProgressDialog != null
-				&& bitcoinchartsProgressDialog.isShowing()) {
-			return;
-		}
-		bitcoinchartsProgressDialog = ProgressDialog.show(this, "Working...",
-				"Retrieving data", true, true);
 		bitcoinchartsThread gt = new bitcoinchartsThread();
 		gt.start();
 	}
@@ -169,6 +167,14 @@ public class BitcoinChartsActivity extends SherlockActivity {
 
 		@Override
 		public void run() {
+			runOnUiThread(new Runnable() {
+				public void run() {
+					TableLayout t1 = (TableLayout) findViewById(R.id.bitcoincharts_list);
+					t1.removeAllViews();
+					LinearLayout linlaHeaderProgress = (LinearLayout) findViewById(R.id.linlaHeaderProgress3);
+					linlaHeaderProgress.setVisibility(View.VISIBLE);
+				}
+			});
 			getBitcoinCharts();
 			mOrderHandler.post(mGraphView);
 		}
@@ -177,31 +183,25 @@ public class BitcoinChartsActivity extends SherlockActivity {
 	final Runnable mGraphView = new Runnable() {
 		@Override
 		public void run() {
-			safelyDismiss(bitcoinchartsProgressDialog);
 			drawBitcoinChartsUI();
 		}
 	};
 
-	private void safelyDismiss(ProgressDialog dialog) {
-		if (dialog != null && dialog.isShowing()) {
-			dialog.dismiss();
-		}
-		if (connectionFail) {
-			AlertDialog.Builder builder = new AlertDialog.Builder(this);
-			builder.setMessage("Could not retrieve data from "
-					+ "Bitcoin Charts"
-					+ ".\n\nCheck 3G or Wifi connection and try again.");
-			builder.setPositiveButton("OK",
-					new DialogInterface.OnClickListener() {
-						@Override
-						public void onClick(DialogInterface dialog, int id) {
-							dialog.cancel();
-						}
-					});
+	private void connectionFailed() {
+		LinearLayout linlaHeaderProgress = (LinearLayout) findViewById(R.id.linlaHeaderProgress3);
+		linlaHeaderProgress.setVisibility(View.GONE);
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setMessage("Could not retrieve data from " + "Bitcoin Charts"
+				+ ".\n\nCheck 3G or Wifi connection and try again.");
+		builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int id) {
+				dialog.cancel();
+			}
+		});
 
-			AlertDialog alert = builder.create();
-			alert.show();
-		}
+		AlertDialog alert = builder.create();
+		alert.show();
 	}
 
 }

@@ -1,9 +1,12 @@
-package com.veken0m.cavirtex;
+package com.veken0m.cavirtex.exchanges;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import com.veken0m.cavirtex.R;
+import com.veken0m.cavirtex.BaseExchangeFragment;
 
 public class BitFloorFragment extends BaseExchangeFragment {
 

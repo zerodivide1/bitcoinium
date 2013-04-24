@@ -3,11 +3,11 @@ package com.veken0m.cavirtex;
 import java.util.List;
 
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -15,6 +15,7 @@ import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.view.Gravity;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TableRow.LayoutParams;
@@ -25,6 +26,9 @@ import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
+import com.veken0m.cavirtex.R;
+import com.veken0m.cavirtex.exchanges.Exchange;
+import com.veken0m.cavirtex.utils.Utils;
 import com.xeiam.xchange.ExchangeFactory;
 import com.xeiam.xchange.currency.Currencies;
 import com.xeiam.xchange.dto.marketdata.OrderBook;
@@ -33,13 +37,12 @@ import com.xeiam.xchange.service.marketdata.polling.PollingMarketDataService;
 
 public class OrderbookActivity extends SherlockActivity {
 
-	protected static ProgressDialog orderbookProgressDialog;
 	final static Handler mOrderHandler = new Handler();
-	Boolean connectionFail = false;
 	protected static String exchangeName = "";
 	protected String xchangeExchange = null;
 	protected List<LimitOrder> listAsks;
 	protected List<LimitOrder> listBids;
+
 	/**
 	 * List of preference variables
 	 */
@@ -79,7 +82,6 @@ public class OrderbookActivity extends SherlockActivity {
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		MenuInflater inflater = getSupportMenuInflater();
-		//menu.findItem(R.id.action_refresh).setIcon(R.drawable.ic_menu_refresh);
 		inflater.inflate(R.menu.action_menu, menu);
 		return true;
 	}
@@ -108,7 +110,7 @@ public class OrderbookActivity extends SherlockActivity {
 
 	protected static void readPreferences(Context context, String prefix,
 			String defaultCurrency) {
-		// Get the xml/preferences.xml preferences
+
 		SharedPreferences prefs = PreferenceManager
 				.getDefaultSharedPreferences(context);
 
@@ -121,8 +123,16 @@ public class OrderbookActivity extends SherlockActivity {
 				defaultCurrency);
 		pref_showCurrencySymbol = prefs.getBoolean("showCurrencySymbolPref",
 				true);
+		try{
 		pref_orderbookLimiter = Integer.parseInt(prefs.getString(
 				"orderbookLimiterPref", "100"));
+		} catch (Exception e){
+			pref_orderbookLimiter = 100;
+			// If preference is not set a valid integer set to "100"
+			Editor editor = prefs.edit();
+			editor.putString("orderbookLimiterPref", "100");
+			editor.commit();
+		}
 	}
 
 	/**
@@ -130,7 +140,6 @@ public class OrderbookActivity extends SherlockActivity {
 	 */
 	public void getOrderBook() {
 		try {
-
 			final PollingMarketDataService marketData = ExchangeFactory.INSTANCE
 					.createExchange(xchangeExchange)
 					.getPollingMarketDataService();
@@ -154,7 +163,11 @@ public class OrderbookActivity extends SherlockActivity {
 			listBids = orderbook.getBids().subList(0, length);
 
 		} catch (Exception e) {
-			connectionFail = true;
+			runOnUiThread(new Runnable() {
+				public void run() {
+					connectionFailed();
+				}
+			});
 			e.printStackTrace();
 		}
 	}
@@ -165,7 +178,13 @@ public class OrderbookActivity extends SherlockActivity {
 	public void drawOrderbookUI() {
 
 		final TableLayout t1 = (TableLayout) findViewById(R.id.orderlist);
-		t1.removeAllViewsInLayout();
+		LinearLayout linlaHeaderProgress = (LinearLayout) findViewById(R.id.linlaHeaderProgress);
+		linlaHeaderProgress.setVisibility(View.GONE);
+		
+		TextView orderBookHeader = (TextView) findViewById(R.id.orderbook_header);
+		orderBookHeader.setText(exchangeName + " " + pref_currency);
+		
+
 		LayoutParams params = new TableRow.LayoutParams(
 				LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, 1f);
 		int bidTextColor = Color.GRAY;
@@ -270,12 +289,6 @@ public class OrderbookActivity extends SherlockActivity {
 	}
 
 	private void viewOrderbook() {
-		if (orderbookProgressDialog != null
-				&& orderbookProgressDialog.isShowing()) {
-			return;
-		}
-		orderbookProgressDialog = ProgressDialog.show(this, "Working...",
-				"Retrieving Orderbook", true, true);
 		OrderbookThread gt = new OrderbookThread();
 		gt.start();
 	}
@@ -284,41 +297,45 @@ public class OrderbookActivity extends SherlockActivity {
 
 		@Override
 		public void run() {
+			runOnUiThread(new Runnable() {
+				public void run() {
+					TableLayout t1 = (TableLayout) findViewById(R.id.orderlist);
+					t1.removeAllViews();
+					LinearLayout linlaHeaderProgress = (LinearLayout) findViewById(R.id.linlaHeaderProgress);
+					linlaHeaderProgress.setVisibility(View.VISIBLE);
+				}
+			});
 			getOrderBook();
 			mOrderHandler.post(mGraphView);
+
 		}
 	}
 
 	final Runnable mGraphView = new Runnable() {
 		@Override
 		public void run() {
-			safelyDismiss(orderbookProgressDialog);
 			try {
 				drawOrderbookUI();
 			} catch (Exception e) {
+				e.printStackTrace();
 			}
 		}
 	};
 
-	private void safelyDismiss(ProgressDialog dialog) {
-		if (dialog != null && dialog.isShowing()) {
-			dialog.dismiss();
-		}
-		if (connectionFail) {
-			AlertDialog.Builder builder = new AlertDialog.Builder(this);
-			builder.setMessage("Could not retrieve orderbook from "
-					+ exchangeName
-					+ ".\n\nCheck 3G or Wifi connection and try again.");
-			builder.setPositiveButton("OK",
-					new DialogInterface.OnClickListener() {
-						@Override
-						public void onClick(DialogInterface dialog, int id) {
-							dialog.cancel();
-						}
-					});
+	private void connectionFailed() {
+		LinearLayout linlaHeaderProgress = (LinearLayout) findViewById(R.id.linlaHeaderProgress);
+		linlaHeaderProgress.setVisibility(View.GONE);
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setMessage("Could not retrieve orderbook from " + exchangeName
+				+ ".\n\nCheck 3G or Wifi connection and try again.");
+		builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int id) {
+				dialog.cancel();
+			}
+		});
 
-			AlertDialog alert = builder.create();
-			alert.show();
-		}
+		AlertDialog alert = builder.create();
+		alert.show();
 	}
 }
