@@ -12,12 +12,12 @@ import android.webkit.WebView;
 
 public class WebViewerActivity extends Activity {
 	static WebView mWebView;
+	final static CharSequence cBitcoinium = "Bitcoinium.com";
 	final static CharSequence cMtGox = "MtGox";
 	final static CharSequence cVirtEx = "VirtEx";
 	final static CharSequence cBTCE = "BTC-E";
 	final static CharSequence cBitstamp = "Bitstamp";
 	final static CharSequence cCampBX = "CampBX";
-	final static CharSequence cBitcoinCentral = "BitcoinCentral";
 	final static CharSequence cmtGoxLive = "MtGoxLive";
 	final static CharSequence cBTCChartsVirtex = "BTCCharts - VirtEx";
 	final static CharSequence cBTCChartsMtGox = "BTCCharts - MtGox";
@@ -41,7 +41,9 @@ public class WebViewerActivity extends Activity {
 	}
 
 	private void displayMenu() {
-		final CharSequence[] items = { cMtGox, cVirtEx, cBTCE, cBitstamp, cCampBX, cBitcoinCentral, cmtGoxLive, cBTCChartsMtGox, cBTCChartsVirtex, cClose };
+		final CharSequence[] items = { cBitcoinium, cMtGox, cVirtEx, cBTCE,
+				cBitstamp, cCampBX, cmtGoxLive, cBTCChartsMtGox,
+				cBTCChartsVirtex, cClose };
 
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setTitle("Select an option");
@@ -54,7 +56,10 @@ public class WebViewerActivity extends Activity {
 				mWebView.getSettings().setSupportZoom(true);
 				mWebView.getSettings().setBuiltInZoomControls(true);
 
-				if (items[item] == cVirtEx) {
+				if (items[item] == cBitcoinium) {
+					dialog.cancel();
+					mWebView.loadUrl("http://bitcoinium.com/");
+				} else if (items[item] == cVirtEx) {
 					dialog.cancel();
 					mWebView.loadUrl("https://www.cavirtex.com/orderbook");
 				} else if (items[item] == cBTCChartsVirtex) {
@@ -78,11 +83,7 @@ public class WebViewerActivity extends Activity {
 				} else if (items[item] == cCampBX) {
 					dialog.cancel();
 					mWebView.loadUrl("https://campbx.com/mktexplorer.php");
-				}else if (items[item] == cBitcoinCentral) {
-					dialog.cancel();
-					mWebView.loadUrl("https://bitcoin-central.net/");
-				}
-				else {
+				} else {
 					dialog.cancel();
 
 				}

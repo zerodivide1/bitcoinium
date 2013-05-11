@@ -80,12 +80,6 @@ public class WidgetProvider extends BaseWidgetProvider {
 					String prefix = exchange.getPrefix();
 					Boolean tickerBidAsk = exchange.supportsTickerBidAsk();
 
-					// BitcoinCentral is too long for widget, change to
-					// B.Central
-					if (exchangeName.equalsIgnoreCase("BitcoinCentral")) {
-						exchangeName = "B.Central";
-					}
-
 					readPreferences(context, prefix, defaultCurrency);
 
 					if (pref_currency.length() == 3) {
@@ -238,7 +232,7 @@ public class WidgetProvider extends BaseWidgetProvider {
 			} else {
 				setTextColors(views, Color.WHITE);
 			}
-			
+
 			views.setTextViewText(R.id.widgetLowText, bidString);
 			views.setTextViewText(R.id.widgetHighText, askString);
 		}
