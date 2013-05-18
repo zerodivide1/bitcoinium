@@ -25,14 +25,23 @@ import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.veken0m.bitcoinium.exchanges.Exchange;
 import com.veken0m.bitcoinium.utils.Utils;
+import com.veken0m.xhub.dto.Orderbook;
 import com.xeiam.xchange.ExchangeFactory;
 import com.xeiam.xchange.currency.Currencies;
 import com.xeiam.xchange.dto.marketdata.OrderBook;
 import com.xeiam.xchange.dto.trade.LimitOrder;
 import com.xeiam.xchange.service.marketdata.polling.PollingMarketDataService;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+
+import java.io.InputStreamReader;
+import java.math.BigDecimal;
 import java.util.List;
 
 public class OrderbookActivity extends SherlockActivity {
@@ -42,6 +51,11 @@ public class OrderbookActivity extends SherlockActivity {
     protected String xchangeExchange = null;
     protected List<LimitOrder> listAsks;
     protected List<LimitOrder> listBids;
+    
+    protected List<BigDecimal> listAsksPrice;
+    protected List<BigDecimal> listBidsPrice;
+    protected List<BigDecimal> listAsksAmount;
+    protected List<BigDecimal> listBidsAmount;
 
     /**
      * List of preference variables
@@ -143,15 +157,15 @@ public class OrderbookActivity extends SherlockActivity {
      */
     public void getOrderBook() {
         try {
-            
+
             baseCurrency = Currencies.BTC;
             counterCurrency = pref_currency;
-            
+
             if (pref_currency.contains("/")) {
                 baseCurrency = pref_currency.substring(0, 3);
                 counterCurrency = pref_currency.substring(4, 7);
             }
-            
+
             final PollingMarketDataService marketData = ExchangeFactory.INSTANCE
                     .createExchange(xchangeExchange)
                     .getPollingMarketDataService();
@@ -173,6 +187,56 @@ public class OrderbookActivity extends SherlockActivity {
 
             listAsks = orderbook.getAsks().subList(0, length);
             listBids = orderbook.getBids().subList(0, length);
+
+        } catch (Exception e) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    connectionFailed();
+                }
+            });
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Fetch the OrderbookActivity and split into Ask/Bids lists
+     */
+    public void getXHubOrderBook() {
+        try {
+
+            baseCurrency = Currencies.BTC;
+            counterCurrency = pref_currency;
+
+            if (pref_currency.contains("/")) {
+                baseCurrency = pref_currency.substring(0, 3);
+                counterCurrency = pref_currency.substring(4, 7);
+            }
+
+            HttpClient client = new DefaultHttpClient();
+            HttpGet post = new HttpGet("http://173.10.241.156:9090/orderbook?exchange=mtgox&pair=BTC_USD&pricewindow=1p");
+            HttpResponse response = client.execute(post);
+            ObjectMapper mapper = new ObjectMapper();
+
+            Orderbook orderbook = mapper.readValue(new InputStreamReader(response.getEntity()
+                    .getContent(), "UTF-8"), com.veken0m.xhub.dto.Orderbook.class);
+
+            // Limit OrderbookActivity orders drawn to speed up performance
+            int length = 0;
+            if (orderbook.getAp().size() < orderbook.getBp().size()) {
+                length = orderbook.getAp().size();
+            } else {
+                length = orderbook.getBp().size();
+            }
+
+            if (pref_orderbookLimiter != 0 && pref_orderbookLimiter < length) {
+                length = pref_orderbookLimiter;
+            }
+
+            listAsksPrice = orderbook.getAp().subList(0, length);
+            listBidsPrice = orderbook.getBp().subList(0, length);
+            listAsksAmount = orderbook.getAv().subList(0, length);
+            listBidsAmount = orderbook.getBv().subList(0, length);
 
         } catch (Exception e) {
             runOnUiThread(new Runnable() {
@@ -300,6 +364,124 @@ public class OrderbookActivity extends SherlockActivity {
         }
 
     }
+    
+    /**
+     * Draw the Orders to the screen in a table
+     */
+    public void drawXHubOrderbookUI() {
+
+        final TableLayout t1 = (TableLayout) findViewById(R.id.orderlist);
+        LinearLayout linlaHeaderProgress = (LinearLayout) findViewById(R.id.linlaHeaderProgress);
+        linlaHeaderProgress.setVisibility(View.GONE);
+
+        TextView orderBookHeader = (TextView) findViewById(R.id.orderbook_header);
+        orderBookHeader.setText(exchangeName + " " + baseCurrency + "/" + counterCurrency);
+
+        LayoutParams params = new TableRow.LayoutParams(
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        int bidTextColor = Color.GRAY;
+        int askTextColor = Color.GRAY;
+
+        String currencySymbolBTC = "";
+        String currencySymbol = "";
+
+        if (pref_showCurrencySymbol) {
+            currencySymbolBTC = " " + baseCurrency;
+            currencySymbol = Utils.getCurrencySymbol(counterCurrency);
+        } else {
+            currencySymbol = "";
+            currencySymbolBTC = "";
+        }
+        
+        float previousBidAmount = 0;
+        float previousAskAmount = 0;
+        
+
+        for (int i = 0; i <  listAsksPrice.size(); i++) {
+
+            final TableRow tr1 = new TableRow(this);
+            final TextView tvAskAmount = new TextView(this);
+            final TextView tvAskPrice = new TextView(this);
+            final TextView tvBidPrice = new TextView(this);
+            final TextView tvBidAmount = new TextView(this);
+            tr1.setId(100 + i);
+
+            float bidPrice = listBidsPrice.get(i).floatValue();
+            float bidAmount = listBidsAmount.get(i).floatValue() - previousBidAmount;
+            float askPrice = listAsksPrice.get(i).floatValue();
+            float askAmount = listAsksAmount.get(i).floatValue() - previousAskAmount;
+            
+            previousAskAmount = listAsksAmount.get(i).floatValue();
+            previousBidAmount = listBidsAmount.get(i).floatValue();
+
+            final String sBidPrice = Utils.formatDecimal(bidPrice, 5, false);
+            final String sBidAmount = Utils.formatDecimal(bidAmount, 2, false);
+            final String sAskPrice = Utils.formatDecimal(askPrice, 5, false);
+            final String sAskAmount = Utils.formatDecimal(askAmount, 2, false);
+
+            tvBidAmount.setText(sBidAmount + currencySymbolBTC);
+            tvBidAmount.setLayoutParams(params);
+            tvBidAmount.setGravity(Gravity.CENTER);
+            tvAskAmount.setText(sAskAmount + currencySymbolBTC);
+            tvAskAmount.setLayoutParams(params);
+            tvAskAmount.setGravity(Gravity.CENTER);
+
+            tvBidPrice.setText(currencySymbol + sBidPrice);
+            tvBidPrice.setLayoutParams(params);
+            tvBidPrice.setGravity(Gravity.CENTER);
+            tvAskPrice.setText(currencySymbol + sAskPrice);
+            tvAskPrice.setLayoutParams(params);
+            tvAskPrice.setGravity(Gravity.CENTER);
+
+            if (pref_enableHighlight) {
+                if ((int) bidAmount < pref_highlightLow) {
+                    bidTextColor = Color.RED;
+                }
+                if ((int) bidAmount >= pref_highlightLow) {
+                    bidTextColor = Color.YELLOW;
+                }
+                if ((int) bidAmount >= pref_highlightHigh) {
+                    bidTextColor = Color.GREEN;
+                }
+
+                if ((int) askAmount < pref_highlightLow) {
+                    askTextColor = Color.RED;
+                }
+                if ((int) askAmount >= pref_highlightLow) {
+                    askTextColor = Color.YELLOW;
+                }
+                if ((int) askAmount >= pref_highlightHigh) {
+                    askTextColor = Color.GREEN;
+                }
+
+                tvBidAmount.setTextColor(bidTextColor);
+                tvBidPrice.setTextColor(bidTextColor);
+                tvAskAmount.setTextColor(askTextColor);
+                tvAskPrice.setTextColor(askTextColor);
+            }
+
+            try {
+                tr1.addView(tvBidPrice);
+                tr1.addView(tvBidAmount);
+                tr1.addView(tvAskPrice);
+                tr1.addView(tvAskAmount);
+
+                t1.addView(tr1);
+
+                // Insert a divider between rows
+                View divider = new View(this);
+                divider.setLayoutParams(new TableRow.LayoutParams(
+                        android.view.ViewGroup.LayoutParams.MATCH_PARENT, 1));
+                divider.setBackgroundColor(Color.rgb(51, 51, 51));
+                t1.addView(divider);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+    }
 
     private void viewOrderbook() {
         OrderbookThread gt = new OrderbookThread();
@@ -320,6 +502,7 @@ public class OrderbookActivity extends SherlockActivity {
                 }
             });
             getOrderBook();
+            //getXHubOrderBook();
             mOrderHandler.post(mGraphView);
 
         }
@@ -330,6 +513,7 @@ public class OrderbookActivity extends SherlockActivity {
         public void run() {
             try {
                 drawOrderbookUI();
+                //drawXHubOrderbookUI();
             } catch (Exception e) {
                 e.printStackTrace();
             }
