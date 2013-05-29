@@ -1,6 +1,5 @@
-package com.veken0m.cavirtex;
 
-import java.util.List;
+package com.veken0m.cavirtex;
 
 import android.app.AlertDialog;
 import android.content.Context;
@@ -15,7 +14,11 @@ import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.view.Gravity;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemSelectedListener;
+import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TableRow.LayoutParams;
@@ -26,316 +29,370 @@ import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
-import com.veken0m.cavirtex.R;
 import com.veken0m.cavirtex.exchanges.Exchange;
 import com.veken0m.cavirtex.utils.Utils;
 import com.xeiam.xchange.ExchangeFactory;
 import com.xeiam.xchange.currency.Currencies;
 import com.xeiam.xchange.dto.marketdata.OrderBook;
 import com.xeiam.xchange.dto.trade.LimitOrder;
-import com.xeiam.xchange.service.marketdata.polling.PollingMarketDataService;
+import com.xeiam.xchange.service.polling.PollingMarketDataService;
 
-public class OrderbookActivity extends SherlockActivity {
+import java.util.Arrays;
+import java.util.List;
 
-	final static Handler mOrderHandler = new Handler();
-	protected static String exchangeName = "";
-	protected String xchangeExchange = null;
-	protected List<LimitOrder> listAsks;
-	protected List<LimitOrder> listBids;
+public class OrderbookActivity extends SherlockActivity implements OnItemSelectedListener {
 
-	/**
-	 * List of preference variables
-	 */
-	static int pref_highlightHigh;
-	static int pref_highlightLow;
-	static int pref_orderbookLimiter;
-	static Boolean pref_enableHighlight;
-	static String pref_currency;
-	static Boolean pref_showCurrencySymbol;
+    final static Handler mOrderHandler = new Handler();
+    protected static String exchangeName = "";
+    protected String xchangeExchange = null;
+    protected List<LimitOrder> listAsks;
+    protected List<LimitOrder> listBids;
 
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.orderbook);
+    /**
+     * List of preference variables
+     */
+    static int pref_highlightHigh;
+    static int pref_highlightLow;
+    static int pref_orderbookLimiter;
+    static Boolean pref_enableHighlight;
+    static String pref_currency;
+    static Boolean pref_showCurrencySymbol;
+    String baseCurrency;
+    String counterCurrency;
 
-		ActionBar actionbar = getSupportActionBar();
-		actionbar.show();
+    private Spinner spinner;
+    private ArrayAdapter<String> dataAdapter;
+    String prefix = "mtgox";
 
-		Bundle extras = getIntent().getExtras();
-		if (extras != null) {
-			exchangeName = extras.getString("exchange");
-		}
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.orderbook);
 
-		Exchange exchange = new Exchange(getResources().getStringArray(
-				getResources().getIdentifier(exchangeName, "array",
-						this.getPackageName())));
+        ActionBar actionbar = getSupportActionBar();
+        actionbar.show();
 
-		exchangeName = exchange.getExchangeName();
-		xchangeExchange = exchange.getClassName();
-		String defaultCurrency = exchange.getMainCurrency();
-		String prefix = exchange.getPrefix();
+        Bundle extras = getIntent().getExtras();
+        if (extras != null) {
+            exchangeName = extras.getString("exchange");
+        }
 
-		readPreferences(getApplicationContext(), prefix, defaultCurrency);
+        Exchange exchange = new Exchange(getResources().getStringArray(
+                getResources().getIdentifier(exchangeName, "array",
+                        this.getPackageName())));
 
-		viewOrderbook();
-	}
+        exchangeName = exchange.getExchangeName();
+        xchangeExchange = exchange.getClassName();
+        String defaultCurrency = exchange.getMainCurrency();
+        prefix = exchange.getPrefix();
 
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		MenuInflater inflater = getSupportMenuInflater();
-		inflater.inflate(R.menu.action_menu, menu);
-		return true;
-	}
+        final String[] dropdownValues = getResources().getStringArray(
+                getResources().getIdentifier(prefix + "currenciesvalues", "array",
+                        this.getPackageName()));
 
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		if (item.getItemId() == R.id.action_preferences) {
-			startActivity(new Intent(this, PreferencesActivity.class));
-		}
-		if (item.getItemId() == R.id.action_refresh) {
-			viewOrderbook();
-		}
-		return super.onOptionsItemSelected(item);
-	}
+        spinner = (Spinner) findViewById(R.id.orderbook_currency_spinner);
+        ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(this,
+                android.R.layout.simple_spinner_item, dropdownValues);
+        dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(dataAdapter);
 
-	@Override
-	public void onConfigurationChanged(Configuration newConfig) {
-		super.onConfigurationChanged(newConfig);
-		setContentView(R.layout.orderbook);
-		try {
-			drawOrderbookUI();
-		} catch (Exception e) {
-			viewOrderbook();
-		}
-	}
+        readPreferences(getApplicationContext(), prefix, defaultCurrency);
+        spinner.setSelection(Arrays.asList(dropdownValues).indexOf(pref_currency));
+        spinner.setOnItemSelectedListener(this);
 
-	protected static void readPreferences(Context context, String prefix,
-			String defaultCurrency) {
+        viewOrderbook();
+    }
 
-		SharedPreferences prefs = PreferenceManager
-				.getDefaultSharedPreferences(context);
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getSupportMenuInflater();
+        inflater.inflate(R.menu.action_menu, menu);
+        return true;
+    }
 
-		pref_enableHighlight = prefs.getBoolean("highlightPref", true);
-		pref_highlightHigh = Integer.parseInt(prefs.getString("highlightUpper",
-				"50"));
-		pref_highlightLow = Integer.parseInt(prefs.getString("highlightLower",
-				"10"));
-		pref_currency = prefs.getString(prefix + "CurrencyPref",
-				defaultCurrency);
-		pref_showCurrencySymbol = prefs.getBoolean("showCurrencySymbolPref",
-				true);
-		try{
-		pref_orderbookLimiter = Integer.parseInt(prefs.getString(
-				"orderbookLimiterPref", "100"));
-		} catch (Exception e){
-			pref_orderbookLimiter = 100;
-			// If preference is not set a valid integer set to "100"
-			Editor editor = prefs.edit();
-			editor.putString("orderbookLimiterPref", "100");
-			editor.commit();
-		}
-	}
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.action_preferences) {
+            startActivity(new Intent(this, PreferencesActivity.class));
+        }
+        if (item.getItemId() == R.id.action_refresh) {
+            viewOrderbook();
+        }
+        return super.onOptionsItemSelected(item);
+    }
 
-	/**
-	 * Fetch the OrderbookActivity and split into Ask/Bids lists
-	 */
-	public void getOrderBook() {
-		try {
-			final PollingMarketDataService marketData = ExchangeFactory.INSTANCE
-					.createExchange(xchangeExchange)
-					.getPollingMarketDataService();
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        setContentView(R.layout.orderbook);
 
-			OrderBook orderbook = marketData.getFullOrderBook(Currencies.BTC,
-					pref_currency);
+        try {
+            // Re-populate the dropdown menu
+            final String[] dropdownValues = getResources().getStringArray(
+                    getResources().getIdentifier(prefix + "currenciesvalues", "array",
+                            this.getPackageName()));
+            spinner = (Spinner) findViewById(R.id.orderbook_currency_spinner);
+            dataAdapter = new ArrayAdapter<String>(this,
+                    android.R.layout.simple_spinner_item, dropdownValues);
+            dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            spinner.setAdapter(dataAdapter);
+            spinner.setOnItemSelectedListener(this);
+            drawOrderbookUI();
+        } catch (Exception e) {
+            viewOrderbook();
+        }
+    }
 
-			// Limit OrderbookActivity orders drawn to speed up performance
-			int length = 0;
-			if (orderbook.getAsks().size() < orderbook.getBids().size()) {
-				length = orderbook.getAsks().size();
-			} else {
-				length = orderbook.getBids().size();
-			}
+    protected static void readPreferences(Context context, String prefix,
+            String defaultCurrency) {
 
-			if (pref_orderbookLimiter != 0 && pref_orderbookLimiter < length) {
-				length = pref_orderbookLimiter;
-			}
+        SharedPreferences prefs = PreferenceManager
+                .getDefaultSharedPreferences(context);
 
-			listAsks = orderbook.getAsks().subList(0, length);
-			listBids = orderbook.getBids().subList(0, length);
+        pref_enableHighlight = prefs.getBoolean("highlightPref", true);
+        pref_highlightHigh = Integer.parseInt(prefs.getString("highlightUpper",
+                "50"));
+        pref_highlightLow = Integer.parseInt(prefs.getString("highlightLower",
+                "10"));
+        pref_currency = prefs.getString(prefix + "CurrencyPref",
+                defaultCurrency);
+        pref_showCurrencySymbol = prefs.getBoolean("showCurrencySymbolPref",
+                true);
+        try {
+            pref_orderbookLimiter = Integer.parseInt(prefs.getString(
+                    "orderbookLimiterPref", "100"));
+        } catch (Exception e) {
+            pref_orderbookLimiter = 100;
+            // If preference is not set a valid integer set to "100"
+            Editor editor = prefs.edit();
+            editor.putString("orderbookLimiterPref", "100");
+            editor.commit();
+        }
+    }
 
-		} catch (Exception e) {
-			runOnUiThread(new Runnable() {
-				public void run() {
-					connectionFailed();
-				}
-			});
-			e.printStackTrace();
-		}
-	}
+    /**
+     * Fetch the OrderbookActivity and split into Ask/Bids lists
+     */
+    public void getOrderBook() {
+        try {
 
-	/**
-	 * Draw the Orders to the screen in a table
-	 */
-	public void drawOrderbookUI() {
+            baseCurrency = Currencies.BTC;
+            counterCurrency = pref_currency;
 
-		final TableLayout t1 = (TableLayout) findViewById(R.id.orderlist);
-		LinearLayout linlaHeaderProgress = (LinearLayout) findViewById(R.id.linlaHeaderProgress);
-		linlaHeaderProgress.setVisibility(View.GONE);
-		
-		TextView orderBookHeader = (TextView) findViewById(R.id.orderbook_header);
-		orderBookHeader.setText(exchangeName + " " + pref_currency);
-		
+            if (pref_currency.contains("/")) {
+                baseCurrency = pref_currency.substring(0, 3);
+                counterCurrency = pref_currency.substring(4, 7);
+            }
 
-		LayoutParams params = new TableRow.LayoutParams(
-				LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, 1f);
-		int bidTextColor = Color.GRAY;
-		int askTextColor = Color.GRAY;
+            final PollingMarketDataService marketData = ExchangeFactory.INSTANCE
+                    .createExchange(xchangeExchange)
+                    .getPollingMarketDataService();
 
-		String currencySymbolBTC = "";
-		String currencySymbol = "";
+            OrderBook orderbook = marketData.getFullOrderBook(baseCurrency,
+                    counterCurrency);
 
-		if (pref_showCurrencySymbol) {
-			currencySymbolBTC = " BTC";
-			currencySymbol = Utils.getCurrencySymbol(pref_currency);
-		} else {
-			currencySymbol = "";
-			currencySymbolBTC = "";
-		}
+            // Limit OrderbookActivity orders drawn to speed up performance
+            int length = 0;
+            if (orderbook.getAsks().size() < orderbook.getBids().size()) {
+                length = orderbook.getAsks().size();
+            } else {
+                length = orderbook.getBids().size();
+            }
 
-		for (int i = 0; i < listBids.size(); i++) {
+            if (pref_orderbookLimiter != 0 && pref_orderbookLimiter < length) {
+                length = pref_orderbookLimiter;
+            }
 
-			final TableRow tr1 = new TableRow(this);
-			final TextView tvAskAmount = new TextView(this);
-			final TextView tvAskPrice = new TextView(this);
-			final TextView tvBidPrice = new TextView(this);
-			final TextView tvBidAmount = new TextView(this);
-			tr1.setId(100 + i);
+            listAsks = orderbook.getAsks().subList(0, length);
+            listBids = orderbook.getBids().subList(0, length);
 
-			final LimitOrder limitorderBid = listBids.get(i);
-			final LimitOrder limitorderAsk = listAsks.get(i);
+        } catch (Exception e) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    connectionFailed();
+                }
+            });
+            e.printStackTrace();
+        }
+    }
 
-			float bidPrice = limitorderBid.getLimitPrice().getAmount()
-					.floatValue();
-			float bidAmount = limitorderBid.getTradableAmount().floatValue();
-			float askPrice = limitorderAsk.getLimitPrice().getAmount()
-					.floatValue();
-			float askAmount = limitorderAsk.getTradableAmount().floatValue();
+    /**
+     * Draw the Orders to the screen in a table
+     */
+    public void drawOrderbookUI() {
 
-			final String sBidPrice = Utils.formatDecimal(bidPrice, 5, false);
-			final String sBidAmount = Utils.formatDecimal(bidAmount, 2, false);
-			final String sAskPrice = Utils.formatDecimal(askPrice, 5, false);
-			final String sAskAmount = Utils.formatDecimal(askAmount, 2, false);
+        final TableLayout t1 = (TableLayout) findViewById(R.id.orderlist);
+        LinearLayout linlaHeaderProgress = (LinearLayout) findViewById(R.id.linlaHeaderProgress);
+        linlaHeaderProgress.setVisibility(View.GONE);
 
-			tvBidAmount.setText(sBidAmount + currencySymbolBTC);
-			tvBidAmount.setLayoutParams(params);
-			tvBidAmount.setGravity(Gravity.CENTER);
-			tvAskAmount.setText(sAskAmount + currencySymbolBTC);
-			tvAskAmount.setLayoutParams(params);
-			tvAskAmount.setGravity(Gravity.CENTER);
+        TextView orderBookHeader = (TextView) findViewById(R.id.orderbook_header);
+        orderBookHeader.setText(exchangeName + " " + baseCurrency + "/" + counterCurrency);
 
-			tvBidPrice.setText(currencySymbol + sBidPrice);
-			tvBidPrice.setLayoutParams(params);
-			tvBidPrice.setGravity(Gravity.CENTER);
-			tvAskPrice.setText(currencySymbol + sAskPrice);
-			tvAskPrice.setLayoutParams(params);
-			tvAskPrice.setGravity(Gravity.CENTER);
+        LayoutParams params = new TableRow.LayoutParams(
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        int bidTextColor = Color.GRAY;
+        int askTextColor = Color.GRAY;
 
-			if (pref_enableHighlight) {
-				if ((int) bidAmount < pref_highlightLow) {
-					bidTextColor = Color.RED;
-				}
-				if ((int) bidAmount >= pref_highlightLow) {
-					bidTextColor = Color.YELLOW;
-				}
-				if ((int) bidAmount >= pref_highlightHigh) {
-					bidTextColor = Color.GREEN;
-				}
+        String currencySymbolBTC = "";
+        String currencySymbol = "";
 
-				if ((int) askAmount < pref_highlightLow) {
-					askTextColor = Color.RED;
-				}
-				if ((int) askAmount >= pref_highlightLow) {
-					askTextColor = Color.YELLOW;
-				}
-				if ((int) askAmount >= pref_highlightHigh) {
-					askTextColor = Color.GREEN;
-				}
+        if (pref_showCurrencySymbol) {
+            currencySymbolBTC = " " + baseCurrency;
+            currencySymbol = Utils.getCurrencySymbol(counterCurrency);
+        } else {
+            currencySymbol = "";
+            currencySymbolBTC = "";
+        }
 
-				tvBidAmount.setTextColor(bidTextColor);
-				tvBidPrice.setTextColor(bidTextColor);
-				tvAskAmount.setTextColor(askTextColor);
-				tvAskPrice.setTextColor(askTextColor);
-			}
+        for (int i = 0; i < listBids.size(); i++) {
 
-			try {
-				tr1.addView(tvBidPrice);
-				tr1.addView(tvBidAmount);
-				tr1.addView(tvAskPrice);
-				tr1.addView(tvAskAmount);
+            final TableRow tr1 = new TableRow(this);
+            final TextView tvAskAmount = new TextView(this);
+            final TextView tvAskPrice = new TextView(this);
+            final TextView tvBidPrice = new TextView(this);
+            final TextView tvBidAmount = new TextView(this);
+            tr1.setId(100 + i);
 
-				t1.addView(tr1);
+            final LimitOrder limitorderBid = listBids.get(i);
+            final LimitOrder limitorderAsk = listAsks.get(i);
 
-				// Insert a divider between rows
-				View divider = new View(this);
-				divider.setLayoutParams(new TableRow.LayoutParams(
-						TableRow.LayoutParams.MATCH_PARENT, 1));
-				divider.setBackgroundColor(Color.rgb(51, 51, 51));
-				t1.addView(divider);
+            float bidPrice = limitorderBid.getLimitPrice().getAmount()
+                    .floatValue();
+            float bidAmount = limitorderBid.getTradableAmount().floatValue();
+            float askPrice = limitorderAsk.getLimitPrice().getAmount()
+                    .floatValue();
+            float askAmount = limitorderAsk.getTradableAmount().floatValue();
 
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
+            final String sBidPrice = Utils.formatDecimal(bidPrice, 5, false);
+            final String sBidAmount = Utils.formatDecimal(bidAmount, 2, false);
+            final String sAskPrice = Utils.formatDecimal(askPrice, 5, false);
+            final String sAskAmount = Utils.formatDecimal(askAmount, 2, false);
 
-	}
+            tvBidAmount.setText(sBidAmount + currencySymbolBTC);
+            tvBidAmount.setLayoutParams(params);
+            tvBidAmount.setGravity(Gravity.CENTER);
+            tvAskAmount.setText(sAskAmount + currencySymbolBTC);
+            tvAskAmount.setLayoutParams(params);
+            tvAskAmount.setGravity(Gravity.CENTER);
 
-	private void viewOrderbook() {
-		OrderbookThread gt = new OrderbookThread();
-		gt.start();
-	}
+            tvBidPrice.setText(currencySymbol + sBidPrice);
+            tvBidPrice.setLayoutParams(params);
+            tvBidPrice.setGravity(Gravity.CENTER);
+            tvAskPrice.setText(currencySymbol + sAskPrice);
+            tvAskPrice.setLayoutParams(params);
+            tvAskPrice.setGravity(Gravity.CENTER);
 
-	public class OrderbookThread extends Thread {
+            if (pref_enableHighlight) {
+                if ((int) bidAmount < pref_highlightLow) {
+                    bidTextColor = Color.RED;
+                }
+                if ((int) bidAmount >= pref_highlightLow) {
+                    bidTextColor = Color.YELLOW;
+                }
+                if ((int) bidAmount >= pref_highlightHigh) {
+                    bidTextColor = Color.GREEN;
+                }
 
-		@Override
-		public void run() {
-			runOnUiThread(new Runnable() {
-				public void run() {
-					TableLayout t1 = (TableLayout) findViewById(R.id.orderlist);
-					t1.removeAllViews();
-					LinearLayout linlaHeaderProgress = (LinearLayout) findViewById(R.id.linlaHeaderProgress);
-					linlaHeaderProgress.setVisibility(View.VISIBLE);
-				}
-			});
-			getOrderBook();
-			mOrderHandler.post(mGraphView);
+                if ((int) askAmount < pref_highlightLow) {
+                    askTextColor = Color.RED;
+                }
+                if ((int) askAmount >= pref_highlightLow) {
+                    askTextColor = Color.YELLOW;
+                }
+                if ((int) askAmount >= pref_highlightHigh) {
+                    askTextColor = Color.GREEN;
+                }
 
-		}
-	}
+                tvBidAmount.setTextColor(bidTextColor);
+                tvBidPrice.setTextColor(bidTextColor);
+                tvAskAmount.setTextColor(askTextColor);
+                tvAskPrice.setTextColor(askTextColor);
+            }
 
-	final Runnable mGraphView = new Runnable() {
-		@Override
-		public void run() {
-			try {
-				drawOrderbookUI();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-	};
+            try {
+                tr1.addView(tvBidPrice);
+                tr1.addView(tvBidAmount);
+                tr1.addView(tvAskPrice);
+                tr1.addView(tvAskAmount);
 
-	private void connectionFailed() {
-		LinearLayout linlaHeaderProgress = (LinearLayout) findViewById(R.id.linlaHeaderProgress);
-		linlaHeaderProgress.setVisibility(View.GONE);
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setMessage("Could not retrieve orderbook from " + exchangeName
-				+ ".\n\nCheck 3G or Wifi connection and try again.");
-		builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int id) {
-				dialog.cancel();
-			}
-		});
+                t1.addView(tr1);
 
-		AlertDialog alert = builder.create();
-		alert.show();
-	}
+                // Insert a divider between rows
+                View divider = new View(this);
+                divider.setLayoutParams(new TableRow.LayoutParams(
+                        android.view.ViewGroup.LayoutParams.MATCH_PARENT, 1));
+                divider.setBackgroundColor(Color.rgb(51, 51, 51));
+                t1.addView(divider);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+    }
+
+    private void viewOrderbook() {
+        OrderbookThread gt = new OrderbookThread();
+        gt.start();
+    }
+
+    public class OrderbookThread extends Thread {
+
+        @Override
+        public void run() {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    TableLayout t1 = (TableLayout) findViewById(R.id.orderlist);
+                    t1.removeAllViews();
+                    LinearLayout linlaHeaderProgress = (LinearLayout) findViewById(R.id.linlaHeaderProgress);
+                    linlaHeaderProgress.setVisibility(View.VISIBLE);
+                }
+            });
+            getOrderBook();
+            mOrderHandler.post(mGraphView);
+        }
+    }
+
+    final Runnable mGraphView = new Runnable() {
+        @Override
+        public void run() {
+            try {
+                drawOrderbookUI();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    };
+
+    private void connectionFailed() {
+        LinearLayout linlaHeaderProgress = (LinearLayout) findViewById(R.id.linlaHeaderProgress);
+        linlaHeaderProgress.setVisibility(View.GONE);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("Could not retrieve orderbook from " + exchangeName
+                + ".\n\nCheck 3G or Wifi connection and try again.");
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int id) {
+                dialog.cancel();
+            }
+        });
+
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
+
+        pref_currency = (String) parent.getItemAtPosition(pos);
+        viewOrderbook();
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> arg0) {
+        // Do nothing
+    }
 }

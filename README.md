@@ -1,4 +1,3 @@
-
 Description
 ===============
 Bitcoinium is an Android application used to monitor Bitcoin price on various exchanges. 
@@ -88,4 +87,3 @@ Bitcoinium Prime (Ad-Free/Paid)	: https://play.google.com/store/apps/details?id=
 Donations
 ===============
 1yjDmiukhB2i1XyVw5t7hpAK4WXo32d54
-
