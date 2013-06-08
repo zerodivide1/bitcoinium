@@ -118,6 +118,9 @@ public class MinerWidgetProvider extends BaseWidgetProvider {
                             createMinerDownNotification(context,
                                     pref_miningpool, NOTIFY_ID * 10);
                         }
+                        String refreshedTime = "Upd. @ "
+                                + Utils.getCurrentTime(context);
+                        views.setTextViewText(R.id.refreshtime, refreshedTime);
                         
                         updateWidgetTheme(views);
 
@@ -129,9 +132,6 @@ public class MinerWidgetProvider extends BaseWidgetProvider {
                             views.setTextColor(R.id.refreshtime, Color.RED);
                         }
                     }
-                    String refreshedTime = "Upd. @ "
-                            + Utils.getCurrentTime(context);
-                    views.setTextViewText(R.id.refreshtime, refreshedTime);
                     widgetManager.updateAppWidget(appWidgetId, views);
                 }
             }

@@ -152,6 +152,9 @@ public class WidgetProvider extends BaseWidgetProvider {
                             } else {
                                 removePermanentNotification(context, NOTIFY_ID);
                             }
+                            String refreshedTime = "Updated @ "
+                                    + Utils.getCurrentTime(context);
+                            views.setTextViewText(R.id.label, refreshedTime);
                             
                             updateWidgetTheme(views);
 
@@ -169,10 +172,6 @@ public class WidgetProvider extends BaseWidgetProvider {
                                 createTicker(context, R.drawable.bitcoin, txt);
                             }
                         } finally {
-                            String refreshedTime = "Updated @ "
-                                    + Utils.getCurrentTime(context);
-                            views.setTextViewText(R.id.label, refreshedTime);
-
                             widgetManager.updateAppWidget(appWidgetId, views);
                         }
                     }
