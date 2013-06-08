@@ -13,6 +13,7 @@ import android.preference.PreferenceManager;
 import android.widget.RemoteViews;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.veken0m.cavirtex.R;
 import com.veken0m.cavirtex.utils.Utils;
 import com.veken0m.mining.bitminter.BitMinterData;
 import com.veken0m.mining.deepbit.DeepBitData;
@@ -264,6 +265,7 @@ public class MinerWidgetProvider extends BaseWidgetProvider {
                         pref_mainWidgetTextColor);
                 views.setTextColor(R.id.refreshtime,
                         pref_widgetRefreshSuccessColor);
+                views.setTextColor(R.id.widgetBTCPayout, pref_secondaryWidgetTextColor);
                 
             } else {
                 views.setInt(
@@ -279,6 +281,7 @@ public class MinerWidgetProvider extends BaseWidgetProvider {
                         R.id.widgetMiner,
                         getResources().getColor(
                                 R.color.widgetMainTextColor));
+                views.setTextColor(R.id.widgetBTCPayout, Color.LTGRAY);
                 views.setTextColor(R.id.refreshtime, Color.GREEN);
             }
         }
