@@ -1,6 +1,7 @@
 
 package com.veken0m.cavirtex;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
@@ -17,7 +18,8 @@ import net.margaritov.preference.colorpicker.ColorPickerPreference;
 public class PreferencesActivity extends PreferenceActivity {
     public static final String REFRESH = "com.veken0m.bitcoinium.REFRESH";
 
-    @Override
+    @SuppressLint("ServiceCast")
+	@Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
@@ -54,6 +56,18 @@ public class PreferencesActivity extends PreferenceActivity {
                                 res.getString(R.string.app_name) + " Feedback");
                         startActivity(Intent.createChooser(i, "Send email"));
 
+                        return true;
+                    }
+                });
+        
+        Preference devTwitterPref = findPreference("devTwitterPref");
+        devTwitterPref
+                .setOnPreferenceClickListener(new OnPreferenceClickListener() {
+
+                    @Override
+                    public boolean onPreferenceClick(Preference preference) {
+                        startActivity(new Intent(Intent.ACTION_VIEW, Uri
+                                .parse("http://twitter.com/veken0m")));
                         return true;
                     }
                 });
