@@ -20,6 +20,7 @@ import android.text.format.Time;
 
 import com.veken0m.bitcoinium.MinerWidgetProvider.MinerUpdateService;
 import com.veken0m.bitcoinium.WidgetProvider.UpdateService;
+import com.xeiam.xchange.currency.Currencies;
 
 import java.util.Calendar;
 
@@ -36,14 +37,13 @@ public class BaseWidgetProvider extends AppWidgetProvider {
     static Boolean pref_wakeupRefresh;
     static Boolean pref_alarmSound;
     static Boolean pref_alarmVibrate;
-    static Boolean pref_ticker;
+    static Boolean pref_enableTicker;
     static Boolean pref_widgetbidask;
     static Boolean pref_wifionly;
     static Boolean pref_alarmClock;
     static String pref_main_currency;
+    static String pref_currency;
     static String pref_notificationSound;
-    static String pref_notifLimitLower;
-    static String pref_notifLimitUpper;
 
     static int pref_mainWidgetTextColor;
     static int pref_secondaryWidgetTextColor;
@@ -57,49 +57,18 @@ public class BaseWidgetProvider extends AppWidgetProvider {
     static PendingIntent widgetRefreshService = null;
     static PendingIntent widgetMinerRefreshService = null;
 
-    protected static void readPreferences(Context context, String prefix,
+    protected static void readAllWidgetPreferences(Context context, String prefix,
             String defaultCurrency) {
 
         SharedPreferences prefs = PreferenceManager
                 .getDefaultSharedPreferences(context);
-
-        pref_displayUpdates = prefs.getBoolean("checkboxPref", false);
-        pref_widgetRefreshFreq = Integer.parseInt(prefs.getString(
-                "refreshPref", "1800"));
-        pref_wakeupRefresh = prefs.getBoolean("wakeupPref", true);
-        pref_priceAlarm = prefs.getBoolean("alarmPref", false);
-        pref_notifLimitUpper = prefs.getString(prefix + "Upper", "999");
-        pref_notifLimitLower = prefs.getString(prefix + "Lower", "0");
-        pref_alarmSound = prefs.getBoolean("alarmSoundPref", false);
-        pref_alarmVibrate = prefs.getBoolean("alarmVibratePref", false);
-        pref_ticker = prefs.getBoolean(prefix + "TickerPref", false);
+        
+        pref_enableTicker = prefs.getBoolean("enableTickerPref", false);
         pref_main_currency = prefs.getString(prefix + "CurrencyPref",
                 defaultCurrency);
-        pref_wifionly = prefs.getBoolean("wifiRefreshOnlyPref", false);
-        pref_notificationSound = prefs.getString("notificationSoundPref",
-                "DEFAULT_RINGTONE_URI");
-        pref_widgetbidask = prefs.getBoolean("bidasktogglePref", false);
-        pref_alarmClock = prefs.getBoolean("alarmClockPref", false);
 
-        pref_mainWidgetTextColor = prefs.getInt("widgetMainTextColorPref",
-                R.color.widgetMainTextColor);
-        pref_secondaryWidgetTextColor = prefs.getInt(
-                "widgetSecondaryTextColorPref",
-                R.color.widgetSecondaryTextColor);
-        pref_backgroundWidgetColor = prefs.getInt("widgetBackgroundColorPref",
-                R.color.widgetBackgroundColor);
-        // pref_showWidgetRefreshTime = prefs.getBoolean("showRefreshTimePref",
-        // true);
-
-        pref_widgetRefreshSuccessColor = prefs.getInt(
-                "widgetRefreshSuccessColorPref",
-                R.color.widgetRefreshSuccessColor);
-        pref_widgetRefreshFailedColor = prefs.getInt(
-                "widgetRefreshFailedColorPref",
-                R.color.widgetRefreshFailedColor);
-        pref_enableWidgetCustomization = prefs.getBoolean(
-                "enableWidgetCustomizationPref", false);
-
+        readGeneralPreferences(context);
+        readAlarmPreferences(context);
     }
 
     protected static void readGeneralPreferences(Context context) {
@@ -119,6 +88,25 @@ public class BaseWidgetProvider extends AppWidgetProvider {
                 "DEFAULT_RINGTONE_URI");
         pref_widgetbidask = prefs.getBoolean("bidasktogglePref", false);
         pref_alarmClock = prefs.getBoolean("alarmClockPref", false);
+        
+        // Theming preferences
+        pref_mainWidgetTextColor = prefs.getInt("widgetMainTextColorPref",
+                R.color.widgetMainTextColor);
+        pref_secondaryWidgetTextColor = prefs.getInt(
+                "widgetSecondaryTextColorPref",
+                R.color.widgetSecondaryTextColor);
+        pref_backgroundWidgetColor = prefs.getInt("widgetBackgroundColorPref",
+                R.color.widgetBackgroundColor);
+        pref_widgetRefreshSuccessColor = prefs.getInt(
+                "widgetRefreshSuccessColorPref",
+                R.color.widgetRefreshSuccessColor);
+        pref_widgetRefreshFailedColor = prefs.getInt(
+                "widgetRefreshFailedColorPref",
+                R.color.widgetRefreshFailedColor);
+        pref_enableWidgetCustomization = prefs.getBoolean(
+                "enableWidgetCustomizationPref", false);
+        // pref_showWidgetRefreshTime = prefs.getBoolean("showRefreshTimePref",
+        // true);
     }
 
     protected static void readAlarmPreferences(Context context) {
@@ -181,7 +169,7 @@ public class BaseWidgetProvider extends AppWidgetProvider {
         }
     }
 
-	static void setAlarmClock(Context context) {
+    static void setAlarmClock(Context context) {
         SharedPreferences prefs = PreferenceManager
                 .getDefaultSharedPreferences(context);
 
@@ -216,13 +204,19 @@ public class BaseWidgetProvider extends AppWidgetProvider {
     }
 
     static void createNotification(Context ctxt, String lastPrice,
-            String exchange, int BITCOIN_NOTIFY_ID) {
+            String exchange, int BITCOIN_NOTIFY_ID, String currencyPair) {
         String ns = Context.NOTIFICATION_SERVICE;
 
-        String tickerText = "Bitcoin alarm value has been reached! \n"
-                + "Bitcoin valued at " + lastPrice + " on " + exchange;
-        String contentTitle = "BTC @ " + lastPrice;
-        String contentText = "Bitcoin value: " + lastPrice + " on " + exchange;
+        String baseCurrency = Currencies.BTC;
+
+        if (currencyPair.contains("/")) {
+            baseCurrency = currencyPair.substring(0, 3);
+        }
+
+        String tickerText = baseCurrency + " alarm value has been reached! \n"
+                + baseCurrency + " valued at " + lastPrice + " on " + exchange;
+        String contentTitle = baseCurrency + " @ " + lastPrice;
+        String contentText = baseCurrency + " value: " + lastPrice + " on " + exchange;
 
         int icon = R.drawable.bitcoin;
         NotificationManager mNotificationManager = (NotificationManager) ctxt

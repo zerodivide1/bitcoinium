@@ -7,6 +7,8 @@ import android.widget.TableRow;
 import android.widget.TableRow.LayoutParams;
 import android.widget.TextView;
 
+import com.xeiam.xchange.currency.Currencies;
+
 import org.joda.money.CurrencyUnit;
 
 import java.math.BigDecimal;
@@ -53,12 +55,12 @@ public class Utils {
         } else {
             currencyCode = "";
         }
-        
+
         // If too small, scale the value
-        if(amount < 0.1){
-            amount*=1000;
-            currencyCode =currencyCode.replace(" ", " m");
-            
+        if (amount < 0.1) {
+            amount *= 1000;
+            currencyCode = currencyCode.replace(" ", " m");
+
         }
 
         return symbol + formatDecimal(amount, 2, false) + currencyCode;
@@ -120,6 +122,26 @@ public class Utils {
         tv.setText(text);
         tv.setLayoutParams(params);
         tv.setGravity(1);
+    }
+
+    /*
+     * Currency pair defined as "baseCurrency/counterCurrency". This methods
+     * splits the pair into it's components and removes the "/"
+     */
+    public static void splitCurrencyPair(String currencyPair, String exchangeName, boolean appendBase) {
+
+        // BTC is default baseCurrency for backwards compatibility with previous
+        // currency pair format before Alt. Coins were introduced.
+        String baseCurrency = Currencies.BTC;
+        String counterCurrency = currencyPair;
+
+        if (currencyPair.contains("/")) {
+            baseCurrency = currencyPair.substring(0, 3);
+            counterCurrency = currencyPair.substring(4, 7);
+            if (!baseCurrency.equals(Currencies.BTC) && appendBase) {
+                exchangeName = exchangeName + " (" + baseCurrency + ")";
+            }
+        }
     }
 
 }

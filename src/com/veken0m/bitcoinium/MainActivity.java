@@ -18,17 +18,19 @@ import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
+import com.veken0m.bitcoinium.exchanges.BTCChinaFragment;
 import com.veken0m.bitcoinium.exchanges.BTCEFragment;
 import com.veken0m.bitcoinium.exchanges.BitstampFragment;
 import com.veken0m.bitcoinium.exchanges.CampBXFragment;
 import com.veken0m.bitcoinium.exchanges.MtGoxFragment;
 import com.veken0m.bitcoinium.exchanges.VirtExFragment;
+import com.veken0m.bitcoinium.exchanges.BitcurexFragment;
 
 import java.util.ArrayList;
 
 /**
  * @author Michael Lagacé a.k.a. veken0m
- * @version 1.5.5 May 11 2013
+ * @version 1.6.3 Aug 02 2013
  */
 public class MainActivity extends SherlockFragmentActivity {
     static String pref_favExchange;
@@ -58,6 +60,8 @@ public class MainActivity extends SherlockFragmentActivity {
                 R.drawable.bitstamplogo);
         ActionBar.Tab CampBXTab = actionbar.newTab().setIcon(
                 R.drawable.campbxlogo);
+        ActionBar.Tab BTCChinaTab = actionbar.newTab().setText("BTC China");
+        ActionBar.Tab BitcurexTab = actionbar.newTab().setText("Bitcurex");
         // ActionBar.Tab BitcoinCentralTab = actionbar.newTab()
         // .setIcon(R.drawable.bitcoinicon).setText("Bitcoin Central");
         // ActionBar.Tab BitfloorTab = actionbar.newTab().setIcon(
@@ -71,6 +75,8 @@ public class MainActivity extends SherlockFragmentActivity {
         tabsAdapter.addTab(BTCETab, BTCEFragment.class, null);
         tabsAdapter.addTab(BitstampTab, BitstampFragment.class, null);
         tabsAdapter.addTab(CampBXTab, CampBXFragment.class, null);
+        tabsAdapter.addTab(BTCChinaTab, BTCChinaFragment.class, null);
+        tabsAdapter.addTab(BitcurexTab, BitcurexFragment.class, null);
         // tabsAdapter.addTab(BitcoinCentralTab, BitcoinCentralFragment.class,
         // null);
         // tabsAdapter.addTab(BitfloorTab, BitFloorFragment.class, null);

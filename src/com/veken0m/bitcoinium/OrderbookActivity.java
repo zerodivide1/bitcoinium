@@ -1,6 +1,16 @@
 
 package com.veken0m.bitcoinium;
 
+import java.io.InputStreamReader;
+import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.List;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -14,7 +24,11 @@ import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.view.Gravity;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemSelectedListener;
+import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TableRow.LayoutParams;
@@ -33,18 +47,9 @@ import com.xeiam.xchange.ExchangeFactory;
 import com.xeiam.xchange.currency.Currencies;
 import com.xeiam.xchange.dto.marketdata.OrderBook;
 import com.xeiam.xchange.dto.trade.LimitOrder;
-import com.xeiam.xchange.service.marketdata.polling.PollingMarketDataService;
+import com.xeiam.xchange.service.polling.PollingMarketDataService;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
-
-import java.io.InputStreamReader;
-import java.math.BigDecimal;
-import java.util.List;
-
-public class OrderbookActivity extends SherlockActivity {
+public class OrderbookActivity extends SherlockActivity implements OnItemSelectedListener {
 
     final static Handler mOrderHandler = new Handler();
     protected static String exchangeName = "";
@@ -69,6 +74,10 @@ public class OrderbookActivity extends SherlockActivity {
     String baseCurrency;
     String counterCurrency;
 
+    private Spinner spinner;
+    private ArrayAdapter<String> dataAdapter;
+    String prefix = "mtgox";
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -89,9 +98,21 @@ public class OrderbookActivity extends SherlockActivity {
         exchangeName = exchange.getExchangeName();
         xchangeExchange = exchange.getClassName();
         String defaultCurrency = exchange.getMainCurrency();
-        String prefix = exchange.getPrefix();
+        prefix = exchange.getPrefix();
+
+        final String[] dropdownValues = getResources().getStringArray(
+                getResources().getIdentifier(prefix + "currenciesvalues", "array",
+                        this.getPackageName()));
+
+        spinner = (Spinner) findViewById(R.id.orderbook_currency_spinner);
+        ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(this,
+                android.R.layout.simple_spinner_item, dropdownValues);
+        dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(dataAdapter);
 
         readPreferences(getApplicationContext(), prefix, defaultCurrency);
+        spinner.setSelection(Arrays.asList(dropdownValues).indexOf(pref_currency));
+        spinner.setOnItemSelectedListener(this);
 
         viewOrderbook();
     }
@@ -118,7 +139,18 @@ public class OrderbookActivity extends SherlockActivity {
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         setContentView(R.layout.orderbook);
+
         try {
+            // Re-populate the dropdown menu
+            final String[] dropdownValues = getResources().getStringArray(
+                    getResources().getIdentifier(prefix + "currenciesvalues", "array",
+                            this.getPackageName()));
+            spinner = (Spinner) findViewById(R.id.orderbook_currency_spinner);
+            dataAdapter = new ArrayAdapter<String>(this,
+                    android.R.layout.simple_spinner_item, dropdownValues);
+            dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            spinner.setAdapter(dataAdapter);
+            spinner.setOnItemSelectedListener(this);
             drawOrderbookUI();
         } catch (Exception e) {
             viewOrderbook();
@@ -504,7 +536,6 @@ public class OrderbookActivity extends SherlockActivity {
             getOrderBook();
             //getXHubOrderBook();
             mOrderHandler.post(mGraphView);
-
         }
     }
 
@@ -535,5 +566,17 @@ public class OrderbookActivity extends SherlockActivity {
 
         AlertDialog alert = builder.create();
         alert.show();
+    }
+
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
+
+        pref_currency = (String) parent.getItemAtPosition(pos);
+        viewOrderbook();
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> arg0) {
+        // Do nothing
     }
 }
