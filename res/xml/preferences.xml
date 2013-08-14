@@ -424,6 +424,7 @@
                     android:key="orderbookLimiterPref"
                     android:summary="Limit values printed on screen to improve performance"
                     android:title="OrderBook list length limit" />
+                         
             </PreferenceCategory>
             <PreferenceCategory android:title="Liquidity Highlighting" >
                 <CheckBoxPreference

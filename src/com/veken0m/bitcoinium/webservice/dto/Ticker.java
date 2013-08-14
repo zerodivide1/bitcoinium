@@ -1,5 +1,5 @@
 
-package com.veken0m.xhub.dto;
+package com.veken0m.bitcoinium.webservice.dto;
 
 import java.math.BigDecimal;
 

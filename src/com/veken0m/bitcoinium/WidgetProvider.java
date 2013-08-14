@@ -205,13 +205,9 @@ public class WidgetProvider extends BaseWidgetProvider {
 
         public Exchange getExchange(String pref_widget) {
             try {
-                return new Exchange(getResources().getStringArray(
-                        getResources().getIdentifier(pref_widget, "array",
-                                getBaseContext().getPackageName())));
+                return new Exchange(getBaseContext(), pref_widget);
             } catch (Exception e) {
-                return new Exchange(getResources().getStringArray(
-                        getResources().getIdentifier("MtGoxExchange", "array",
-                                getBaseContext().getPackageName())));
+                return new Exchange(getBaseContext(), "MtGoxExchange");
             }
         }
 

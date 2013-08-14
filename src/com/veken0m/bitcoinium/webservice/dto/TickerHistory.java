@@ -1,12 +1,12 @@
 
-package com.veken0m.xhub.dto;
+package com.veken0m.bitcoinium.webservice.dto;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 
 public class TickerHistory {
     private ArrayList<BigDecimal> pp;
-    private BigDecimal t;
+    private long t;
     private ArrayList<BigDecimal> tt;
 
     public ArrayList<BigDecimal> getPp() {
@@ -17,11 +17,11 @@ public class TickerHistory {
         this.pp = pp;
     }
 
-    public BigDecimal getT() {
+    public long getT() {
         return this.t;
     }
 
-    public void setT(BigDecimal t) {
+    public void setT(long t) {
         this.t = t;
     }
 
