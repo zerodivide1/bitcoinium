@@ -48,7 +48,6 @@ public class BaseWidgetProvider extends AppWidgetProvider {
     static int pref_mainWidgetTextColor;
     static int pref_secondaryWidgetTextColor;
     static int pref_backgroundWidgetColor;
-    static Boolean pref_showWidgetRefreshTime;
     static int pref_widgetRefreshSuccessColor;
     static int pref_widgetRefreshFailedColor;
     static Boolean pref_enableWidgetCustomization;
@@ -105,8 +104,6 @@ public class BaseWidgetProvider extends AppWidgetProvider {
                 R.color.widgetRefreshFailedColor);
         pref_enableWidgetCustomization = prefs.getBoolean(
                 "enableWidgetCustomizationPref", false);
-        // pref_showWidgetRefreshTime = prefs.getBoolean("showRefreshTimePref",
-        // true);
     }
 
     protected static void readAlarmPreferences(Context context) {
@@ -130,7 +127,8 @@ public class BaseWidgetProvider extends AppWidgetProvider {
     public void onDestoy(Context context) {
         final AlarmManager m = (AlarmManager) context
                 .getSystemService(Context.ALARM_SERVICE);
-
+        
+        m.cancel(widgetMinerRefreshService);
         m.cancel(widgetRefreshService);
     }
 

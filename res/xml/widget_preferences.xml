@@ -177,7 +177,7 @@
         <Preference
             android:key="OKpref"
             android:title="Create Widget"
-            android:layout="@layout/custom_preference_layout" />
+            android:layout="@layout/green_preference_button" />
     </PreferenceCategory>
 
 </PreferenceScreen>
