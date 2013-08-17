@@ -44,6 +44,8 @@ public class BaseWidgetProvider extends AppWidgetProvider {
     static String pref_main_currency;
     static String pref_currency;
     static String pref_notificationSound;
+    static Boolean pref_extremePowerSaver;
+    static Boolean pref_tapToUpdate;
 
     static int pref_mainWidgetTextColor;
     static int pref_secondaryWidgetTextColor;
@@ -79,6 +81,8 @@ public class BaseWidgetProvider extends AppWidgetProvider {
         pref_widgetRefreshFreq = Integer.parseInt(prefs.getString(
                 "refreshPref", "1800"));
         pref_wakeupRefresh = prefs.getBoolean("wakeupPref", true);
+        //pref_extremePowerSaver = prefs.getBoolean("extremeSaverModePref", false);
+        pref_tapToUpdate = prefs.getBoolean("widgetTapUpdatePref", false);
         pref_priceAlarm = prefs.getBoolean("alarmPref", false);
         pref_alarmSound = prefs.getBoolean("alarmSoundPref", false);
         pref_alarmVibrate = prefs.getBoolean("alarmVibratePref", false);
