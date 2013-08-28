@@ -1,10 +1,13 @@
 
 package com.veken0m.bitcoinium;
 
+import android.R.color;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
@@ -51,6 +54,9 @@ public class MainActivity extends SherlockFragmentActivity {
 
         // Tell the ActionBar we want to use Tabs.
         actionbar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+        ColorDrawable color = new ColorDrawable(Color.argb(100, 160, 160, 160));
+        actionbar.setStackedBackgroundDrawable(color);
+        //actionbar.setBackgroundDrawable(color);
 
         // Create the actionbar tabs
         ActionBar.Tab MtGoxTab = actionbar.newTab().setIcon(
@@ -62,8 +68,11 @@ public class MainActivity extends SherlockFragmentActivity {
                 R.drawable.bitstamplogo);
         ActionBar.Tab CampBXTab = actionbar.newTab().setIcon(
                 R.drawable.campbxlogo);
-        ActionBar.Tab BTCChinaTab = actionbar.newTab().setText("BTC China");
-        ActionBar.Tab BitcurexTab = actionbar.newTab().setText("Bitcurex");
+        ActionBar.Tab BTCChinaTab = actionbar.newTab().setIcon(
+                R.drawable.btcchinalogo);
+        ActionBar.Tab BitcurexTab = actionbar.newTab().setIcon(
+                R.drawable.bitcurexlogo);
+        
 
         TabsAdapter tabsAdapter = new TabsAdapter(this, actionbar, mViewPager);
         tabsAdapter.addTab(MtGoxTab, MtGoxFragment.class, null);
