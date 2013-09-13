@@ -77,13 +77,20 @@ public class MainActivity extends SherlockFragmentActivity {
 
         // Create the actionbar tabs
         tabsAdapter = new TabsAdapter(this, actionbar, mViewPager);
-        addTab(actionbar, tabsAdapter, R.drawable.mtgoxlogo, MtGoxFragment.class, "mtgox");
-        addTab(actionbar, tabsAdapter, R.drawable.virtexlogo, VirtExFragment.class, "virtex");
-        addTab(actionbar, tabsAdapter, R.drawable.btcelogo, BTCEFragment.class, "btce");
-        addTab(actionbar, tabsAdapter, R.drawable.bitstamplogo, BitstampFragment.class, "bitstamp");
-        addTab(actionbar, tabsAdapter, R.drawable.campbxlogo, CampBXFragment.class, "campbx");
-        addTab(actionbar, tabsAdapter, R.drawable.btcchinalogo, BTCChinaFragment.class, "btcchina");
-        addTab(actionbar, tabsAdapter, R.drawable.bitcurexlogo, BitcurexFragment.class, "bitcurex");
+        if(prefs.getBoolean("mtgoxShowPref", true))
+            addTab(actionbar, tabsAdapter, R.drawable.mtgoxlogo, MtGoxFragment.class, "mtgox");
+        if(prefs.getBoolean("virtexShowPref", true))
+            addTab(actionbar, tabsAdapter, R.drawable.virtexlogo, VirtExFragment.class, "virtex");
+        if(prefs.getBoolean("btceShowPref", true))
+            addTab(actionbar, tabsAdapter, R.drawable.btcelogo, BTCEFragment.class, "btce");
+        if(prefs.getBoolean("bitstampShowPref", true))
+            addTab(actionbar, tabsAdapter, R.drawable.bitstamplogo, BitstampFragment.class, "bitstamp");
+        if(prefs.getBoolean("campbxShowPref", true))
+            addTab(actionbar, tabsAdapter, R.drawable.campbxlogo, CampBXFragment.class, "campbx");
+        if(prefs.getBoolean("btcchinaShowPref", true))
+            addTab(actionbar, tabsAdapter, R.drawable.btcchinalogo, BTCChinaFragment.class, "btcchina");
+        if(prefs.getBoolean("bitcurexShowPref", true))
+            addTab(actionbar, tabsAdapter, R.drawable.bitcurexlogo, BitcurexFragment.class, "bitcurex");
         addTab(actionbar, tabsAdapter, R.drawable.krakenlogo, KrakenFragment.class, "kraken");
 
         selectTab();
