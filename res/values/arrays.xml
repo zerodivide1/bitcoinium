@@ -47,6 +47,7 @@
         <item >campbx</item>
         <item >btcchina</item>
         <item >bitcurex</item>
+        <!-- <item >kraken</item> -->
     </string-array>
 
 </resources>

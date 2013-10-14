@@ -91,8 +91,8 @@ public class MainActivity extends SherlockFragmentActivity {
             addTab(actionbar, tabsAdapter, R.drawable.btcchinalogo, BTCChinaFragment.class, "btcchina");
         if(prefs.getBoolean("bitcurexShowPref", true))
             addTab(actionbar, tabsAdapter, R.drawable.bitcurexlogo, BitcurexFragment.class, "bitcurex");
-        addTab(actionbar, tabsAdapter, R.drawable.krakenlogo, KrakenFragment.class, "kraken");
-
+        //if(prefs.getBoolean("krakenShowPref", true))
+        //    addTab(actionbar, tabsAdapter, R.drawable.krakenlogo, KrakenFragment.class, "kraken");
         selectTab();
         actionbar.show();
     }
