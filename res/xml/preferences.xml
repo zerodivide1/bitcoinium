@@ -73,7 +73,7 @@
         <PreferenceScreen android:title="Show Exchanges" android:summary="Show or hide exchanges">
             <CheckBoxPreference android:key="mtgoxShowPref" android:title="Show Mt Gox" android:defaultValue="true"/>
             <CheckBoxPreference android:title="Show VirtEx" android:key="virtexShowPref" android:defaultValue="true"/>
-            <CheckBoxPreference android:title="Hide BTC-E" android:key="btceShowPref" android:defaultValue="true"/>
+            <CheckBoxPreference android:title="Show BTC-E" android:key="btceShowPref" android:defaultValue="true"/>
             <CheckBoxPreference android:title="Show Bitstamp" android:key="bitstampShowPref" android:defaultValue="true"/>
             <CheckBoxPreference android:title="Show CampBX" android:key="campbxShowPref" android:defaultValue="true"/>
             <CheckBoxPreference android:title="Show BTCChina" android:key="btcchinaShowPref" android:defaultValue="true"/>
