@@ -26,8 +26,10 @@ import com.veken0m.bitcoinium.exchanges.BTCEFragment;
 import com.veken0m.bitcoinium.exchanges.BitcurexFragment;
 import com.veken0m.bitcoinium.exchanges.BitstampFragment;
 import com.veken0m.bitcoinium.exchanges.CampBXFragment;
+import com.veken0m.bitcoinium.exchanges.KrakenFragment;
 import com.veken0m.bitcoinium.exchanges.MtGoxFragment;
 import com.veken0m.bitcoinium.exchanges.VirtExFragment;
+import com.veken0m.bitcoinium.utils.KarmaAdsUtils;
 
 /**
  * @author Michael Lagacé a.k.a. veken0m
@@ -42,14 +44,8 @@ public class MainActivity extends SherlockFragmentActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         initTabbedActionBar();
-        //initKarmaAd();
+        //KarmaAdsUtils.initAd(this);
     }
-    
-//    public void initKarmaAd(){
-//        WebView mWebView = (WebView) findViewById(R.id.karmaad_container);
-//        mWebView.getSettings().setSupportMultipleWindows(true); 
-//        mWebView.loadUrl("https://karma-ads.com/service/ad/1FvRohzjodKWQVjEoQBCJJtYUvfDpnNQ5r");
-//    }
     
     public void initTabbedActionBar(){
         mViewPager = (ViewPager) findViewById(R.id.pager);
@@ -71,9 +67,8 @@ public class MainActivity extends SherlockFragmentActivity {
         addTab(actionbar, tabsAdapter, R.drawable.campbxlogo, CampBXFragment.class);
         addTab(actionbar, tabsAdapter, R.drawable.btcchinalogo, BTCChinaFragment.class);
         addTab(actionbar, tabsAdapter, R.drawable.bitcurexlogo, BitcurexFragment.class);
-        
-        SharedPreferences prefs = PreferenceManager
-                .getDefaultSharedPreferences(this);
+        //addTab(actionbar, tabsAdapter, R.drawable.krakenlogo, KrakenFragment.class);
+
         try {
             actionbar.setSelectedNavigationItem(Integer
                     .parseInt(prefs.getString("favExchangePref", "0")));
