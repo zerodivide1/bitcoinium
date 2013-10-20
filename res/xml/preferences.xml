@@ -78,7 +78,7 @@
             <CheckBoxPreference android:title="Show CampBX" android:key="campbxShowPref" android:defaultValue="true"/>
             <CheckBoxPreference android:title="Show BTCChina" android:key="btcchinaShowPref" android:defaultValue="true"/>
             <CheckBoxPreference android:title="Show Bitcurex" android:key="bitcurexShowPref" android:defaultValue="true"/>
-            <!-- <CheckBoxPreference android:title="Show Kraken" android:key="krakenShowPref" android:defaultValue="true" /> -->
+            <CheckBoxPreference android:title="Show Kraken" android:key="krakenShowPref" android:defaultValue="true" />
         </PreferenceScreen>
     </PreferenceCategory>
     <PreferenceCategory android:title="Widget Configuration" >
