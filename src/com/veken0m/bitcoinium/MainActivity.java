@@ -66,6 +66,7 @@ public class MainActivity extends SherlockFragmentActivity {
     
     public void initTabbedActionBar(){
         mViewPager = (ViewPager) findViewById(R.id.pager);
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
         // ActionBar gets initiated
         actionbar = getSupportActionBar();
@@ -91,8 +92,8 @@ public class MainActivity extends SherlockFragmentActivity {
             addTab(actionbar, tabsAdapter, R.drawable.btcchinalogo, BTCChinaFragment.class, "btcchina");
         if(prefs.getBoolean("bitcurexShowPref", true))
             addTab(actionbar, tabsAdapter, R.drawable.bitcurexlogo, BitcurexFragment.class, "bitcurex");
-        //if(prefs.getBoolean("krakenShowPref", true))
-        //    addTab(actionbar, tabsAdapter, R.drawable.krakenlogo, KrakenFragment.class, "kraken");
+        if(prefs.getBoolean("krakenShowPref", true))
+            addTab(actionbar, tabsAdapter, R.drawable.krakenlogo, KrakenFragment.class, "kraken");
         selectTab();
         actionbar.show();
     }
